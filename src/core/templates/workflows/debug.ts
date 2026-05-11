@@ -3,8 +3,8 @@
 export function getSynDebugSkillTemplate(): SkillTemplate {
   return {
     name: 'syn-debug',
-    description: 'Investigate a known error or failure — root cause analysis, pattern recognition, and hypothesis formulation. Hands off to /syn:propose for task creation.',
-    instructions: `Investigate a known error or failure systematically in 3 phases. Produces a diagnosis and suggests \`/syn:propose\` for creating the fix change.
+    description: 'Investigate a known error or failure — root cause analysis, pattern recognition, and hypothesis formulation. Hands off explicitly to /syn:propose.',
+    instructions: `Investigate a known error or failure systematically in 3 phases. Produces a diagnosis and explicitly prompts the user to run \`/syn:propose\` — does NOT auto-create artifacts or auto-hand off.
 
 **Input**: Error message, symptom, or failure description. If no input provided, ask what went wrong.
 
@@ -49,7 +49,7 @@ Use that context to understand what was intended vs. what went wrong.
 
 ## Output
 
-After completing the 3-phase investigation, summarize:
+After completing the 3-phase investigation, present findings and prompt explicitly:
 
 \`\`\`
 ### Diagnosis
@@ -58,10 +58,10 @@ After completing the 3-phase investigation, summarize:
 **Pattern**: <similar issues or novel>
 **Hypothesis**: <proposed fix approach>
 
-**Next Step**: Ready to formalize a change? Run \`/syn:propose\` with these findings.
+**Ready to formalize?** Run \`/syn:propose\` to create a change with these findings.
 \`\`\`
 
-If no change exists yet, suggest creating one via \`/syn:propose\` with the diagnosis as the starting context.`,
+Do NOT create any artifacts, do NOT start the pipeline automatically. The user must explicitly run \`/syn:propose\` to formalize.`,
     license: 'MIT',
     compatibility: 'Requires synarcx CLI.',
     metadata: { author: 'synarcx', version: '0.1' },
@@ -71,7 +71,7 @@ If no change exists yet, suggest creating one via \`/syn:propose\` with the diag
 export function getSynDebugCommandTemplate(): CommandTemplate {
   return {
     name: 'syn:debug',
-    description: 'Investigate a known error — root cause analysis through hypothesis, suggests /syn:propose',
+    description: 'Investigate a known error — root cause analysis through hypothesis, explicitly prompts /syn:propose',
     category: 'Workflow',
     tags: ['workflow', 'debug', 'fix'],
     content: `Investigate a known error or failure systematically in 3 phases. Produces a diagnosis and suggests \`/syn:propose\` for creating the fix change.
@@ -114,6 +114,6 @@ If a change is active, read its artifacts first to understand what was intended 
 
 ## Output
 
-After completing, summarize with a diagnosis and suggest \`/syn:propose\` with the findings.`
+After completing, present the diagnosis and explicitly prompt the user to run \`/syn:propose\` to formalize the fix. Do NOT auto-create artifacts.`
   };
 }

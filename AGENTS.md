@@ -4,20 +4,27 @@ This file helps AI agents understand the SynArcX project conventions.
 
 ## Project Overview
 
-SynArcX is a spec-driven development workflow with sync, explore, propose, clarify, analyze, apply, debug, and archive commands. Install globally via `npm install -g synarcx` or `pnpm add -g synarcx`.
+SynArcX is a spec-driven development workflow with sync, explore, propose, clarify, analyze, apply, debug, refactor, quick, and archive commands. Install globally via `npm install -g synarcx` or `pnpm add -g synarcx`.
 
 ## Workflow
 
 The intended user flow is:
 
 ```
-explore ──┐
+sync ─────────────────────────────────────────► constitution
+
+explore  ──┐
+debug    ──┤
            ├──► propose ──► clarify ──► analyze ──► apply ──► archive
-debug   ──┘
+refactor ──┘
+
+quick ──────────────────────────────────────────────────► apply
 ```
 
-- `syn:explore` and `syn:debug` are entry points — both hand off to `syn:propose`
+- `syn:explore`, `syn:debug`, and `syn:refactor` are entry points — all hand off to `syn:propose`
 - `syn:debug` investigates a known error (3-phase: root cause → pattern → hypothesis), produces a diagnosis, then suggests `syn:propose` with the findings. It does NOT write to `tasks.md` directly.
+- `syn:refactor` investigates structural changes (current shape vs target shape) with a behavior-contract gate during analyze, then hands off to `syn:propose`
+- `syn:quick` is a fast-path for small, low-risk changes — no artifacts created, inline preview with confirmation, then applies directly
 - `syn:clarify` and `syn:analyze` refine artifacts before implementation — they are not optional gates but recommended steps
 - Each command ends by suggesting the next step; the user decides when to advance
 

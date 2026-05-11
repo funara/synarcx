@@ -20,6 +20,8 @@ export const WORKFLOW_TO_SKILL_DIR: Record<WorkflowId, string> = {
   'clarify': 'syn-clarify',
   'analyze': 'syn-analyze',
   'debug': 'syn-debug',
+  'refactor': 'syn-refactor',
+  'quick': 'syn-quick',
 };
 
 function toKnownWorkflows(workflows: readonly string[]): WorkflowId[] {

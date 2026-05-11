@@ -20,6 +20,8 @@ export const SKILL_NAMES = [
   'syn-clarify',
   'syn-analyze',
   'syn-debug',
+  'syn-refactor',
+  'syn-quick',
 ] as const;
 
 export type SkillName = (typeof SKILL_NAMES)[number];
@@ -36,6 +38,8 @@ export const COMMAND_IDS = [
   'clarify',
   'analyze',
   'debug',
+  'refactor',
+  'quick',
 ] as const;
 
 export type CommandId = (typeof COMMAND_IDS)[number];

@@ -6,8 +6,9 @@ describe('skill-generation', () => {
   describe('getSkillTemplates', () => {
     const entries = getSkillTemplates()
 
-    it('returns exactly 8 entries', () => {
-      expect(entries).toHaveLength(8)
+    it('returns expected number of entries', () => {
+      expect(entries.length).toBeGreaterThanOrEqual(8)
+      expect(entries.length).toBe(CORE_WORKFLOWS.length)
     })
 
     it('all entries have syn-* dirName', () => {

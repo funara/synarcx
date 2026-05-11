@@ -13,6 +13,8 @@ import {
   getSynClarifySkillTemplate,
   getSynAnalyzeSkillTemplate,
   getSynDebugSkillTemplate,
+  getSynRefactorSkillTemplate,
+  getSynQuickSkillTemplate,
   getSynExploreCommandTemplate,
   getSynApplyCommandTemplate,
   getSynArchiveCommandTemplate,
@@ -21,6 +23,8 @@ import {
   getSynClarifyCommandTemplate,
   getSynAnalyzeCommandTemplate,
   getSynDebugCommandTemplate,
+  getSynRefactorCommandTemplate,
+  getSynQuickCommandTemplate,
   type SkillTemplate,
 } from '../templates/skill-templates.js';
 import type { CommandContent } from '../command-generation/index.js';
@@ -57,6 +61,8 @@ export function getSkillTemplates(workflowFilter?: readonly string[]): SkillTemp
     { template: getSynClarifySkillTemplate(), dirName: 'syn-clarify', workflowId: 'clarify' },
     { template: getSynAnalyzeSkillTemplate(), dirName: 'syn-analyze', workflowId: 'analyze' },
     { template: getSynDebugSkillTemplate(), dirName: 'syn-debug', workflowId: 'debug' },
+    { template: getSynRefactorSkillTemplate(), dirName: 'syn-refactor', workflowId: 'refactor' },
+    { template: getSynQuickSkillTemplate(), dirName: 'syn-quick', workflowId: 'quick' },
   ];
 
   if (!workflowFilter) return all;
@@ -80,6 +86,8 @@ export function getCommandTemplates(workflowFilter?: readonly string[]): Command
     { template: getSynClarifyCommandTemplate(), id: 'clarify' },
     { template: getSynAnalyzeCommandTemplate(), id: 'analyze' },
     { template: getSynDebugCommandTemplate(), id: 'debug' },
+    { template: getSynRefactorCommandTemplate(), id: 'refactor' },
+    { template: getSynQuickCommandTemplate(), id: 'quick' },
   ];
 
   if (!workflowFilter) return all;

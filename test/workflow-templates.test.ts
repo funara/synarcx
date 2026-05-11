@@ -6,12 +6,16 @@ import { getSynDebugSkillTemplate, getSynDebugCommandTemplate } from '../src/cor
 import { getSynExploreSkillTemplate, getSynExploreCommandTemplate } from '../src/core/templates/workflows/explore.js'
 import { getSynProposeSkillTemplate, getSynProposeCommandTemplate } from '../src/core/templates/workflows/propose.js'
 import { getSynApplySkillTemplate, getSynApplyCommandTemplate } from '../src/core/templates/workflows/apply-change.js'
+import { getSynRefactorSkillTemplate, getSynRefactorCommandTemplate } from '../src/core/templates/workflows/refactor.js'
+import { getSynQuickSkillTemplate, getSynQuickCommandTemplate } from '../src/core/templates/workflows/quick.js'
 
 const templateFns = [
   ['sync', getSynSyncSkillTemplate],
   ['clarify', getSynClarifySkillTemplate],
   ['analyze', getSynAnalyzeSkillTemplate],
   ['debug', getSynDebugSkillTemplate],
+  ['refactor', getSynRefactorSkillTemplate],
+  ['quick', getSynQuickSkillTemplate],
 ] as const
 
 describe('workflow template exports', () => {

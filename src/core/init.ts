@@ -69,6 +69,8 @@ const WORKFLOW_TO_SKILL_DIR: Record<string, string> = {
   'clarify': 'syn-clarify',
   'analyze': 'syn-analyze',
   'debug': 'syn-debug',
+  'refactor': 'syn-refactor',
+  'quick': 'syn-quick',
 };
 
 // -----------------------------------------------------------------------------

@@ -14,3 +14,5 @@ export { getSynSyncSkillTemplate, getSynSyncCommandTemplate } from './workflows/
 export { getSynClarifySkillTemplate, getSynClarifyCommandTemplate } from './workflows/clarify.js';
 export { getSynAnalyzeSkillTemplate, getSynAnalyzeCommandTemplate } from './workflows/analyze.js';
 export { getSynDebugSkillTemplate, getSynDebugCommandTemplate } from './workflows/debug.js';
+export { getSynRefactorSkillTemplate, getSynRefactorCommandTemplate } from './workflows/refactor.js';
+export { getSynQuickSkillTemplate, getSynQuickCommandTemplate } from './workflows/quick.js';
