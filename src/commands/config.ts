@@ -19,7 +19,8 @@ import {
   validateConfig,
   DEFAULT_CONFIG,
 } from '../core/config-schema.js';
-import { CORE_WORKFLOWS, ALL_WORKFLOWS, getProfileWorkflows } from '../core/profiles.js';
+import { getProfileWorkflows } from '../core/profiles.js';
+import { CORE_WORKFLOWS, ALL_WORKFLOWS } from '../core/shared/workflow-registry.js';
 import { SYNSPEC_DIR_NAME } from '../core/config.js';
 import { hasProjectConfigDrift } from '../core/profile-sync-drift.js';
 
@@ -191,8 +192,8 @@ function maybeWarnConfigDrift(
   state: ProfileState,
   colorize: (message: string) => string
 ): void {
-  const openspecDir = path.join(projectDir, SYNSPEC_DIR_NAME);
-  if (!fs.existsSync(openspecDir)) {
+  const synspecDir = path.join(projectDir, SYNSPEC_DIR_NAME);
+  if (!fs.existsSync(synspecDir)) {
     return;
   }
   if (!hasProjectConfigDrift(projectDir, state.workflows, state.delivery)) {
@@ -611,10 +612,10 @@ export function registerConfigCommand(program: Command): void {
         config.workflows = nextState.workflows;
         saveGlobalConfig(config);
 
-        // Check if inside an OpenSpec project
+        // Check if inside a synarcx project
         const projectDir = process.cwd();
-        const openspecDir = path.join(projectDir, SYNSPEC_DIR_NAME);
-        if (fs.existsSync(openspecDir)) {
+        const synspecDir = path.join(projectDir, SYNSPEC_DIR_NAME);
+        if (fs.existsSync(synspecDir)) {
           const applyNow = await confirm({
             message: 'Apply changes to this project now?',
             default: true,

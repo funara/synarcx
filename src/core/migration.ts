@@ -8,8 +8,7 @@
 import type { AIToolOption } from './config.js';
 import { getGlobalConfig, getGlobalConfigPath, saveGlobalConfig, type Delivery } from './global-config.js';
 import { CommandAdapterRegistry } from './command-generation/index.js';
-import { WORKFLOW_TO_SKILL_DIR } from './profile-sync-drift.js';
-import { ALL_WORKFLOWS } from './profiles.js';
+import { ALL_WORKFLOWS, WORKFLOW_TO_SKILL_DIR } from './shared/workflow-registry.js';
 import path from 'path';
 import * as fs from 'fs';
 

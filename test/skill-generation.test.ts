@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { getSkillTemplates } from '../src/core/shared/skill-generation.js'
-import { CORE_WORKFLOWS } from '../src/core/profiles.js'
+import { CORE_WORKFLOWS } from '../src/core/shared/workflow-registry.js'
 
 describe('skill-generation', () => {
   describe('getSkillTemplates', () => {

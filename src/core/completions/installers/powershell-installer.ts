@@ -15,6 +15,11 @@ export class PowerShellInstaller {
    * Markers for PowerShell profile configuration management
    */
   private readonly PROFILE_MARKERS = {
+    start: '# SYNARCX:START',
+    end: '# SYNARCX:END',
+  };
+
+  private readonly LEGACY_MARKERS = {
     start: '# OPENSPEC:START',
     end: '# OPENSPEC:END',
   };
@@ -120,7 +125,7 @@ export class PowerShellInstaller {
   getInstallationPath(): string {
     const profilePath = this.getProfilePath();
     const profileDir = path.dirname(profilePath);
-    return path.join(profileDir, 'OpenSpecCompletion.ps1');
+    return path.join(profileDir, 'SynArcXCompletion.ps1');
   }
 
   /**
@@ -199,16 +204,16 @@ export class PowerShellInstaller {
           continue; // Already configured, skip
         }
 
-        // Add OpenSpec completion configuration with markers
-        const openspecBlock = [
+        // Add synarcx completion configuration with markers
+        const synarcxBlock = [
           '',
-          '# OPENSPEC:START - synarcx completion (managed block, do not edit manually)',
+          this.PROFILE_MARKERS.start + ' - synarcx completion (managed block, do not edit manually)',
           scriptLine,
-          '# OPENSPEC:END',
+          this.PROFILE_MARKERS.end,
           '',
         ].join('\n');
 
-        const newContent = profileContent + openspecBlock;
+        const newContent = profileContent + synarcxBlock;
         await this.writeProfileFile(profilePath, newContent, fileEncoding, fileBom);
         anyConfigured = true;
       } catch (error) {
@@ -249,13 +254,17 @@ export class PowerShellInstaller {
           continue;
         }
 
-        // Remove OPENSPEC:START -> OPENSPEC:END block
-        const startMarker = '# OPENSPEC:START';
-        const endMarker = '# OPENSPEC:END';
+        // Determine which markers to use (check new first, fall back to legacy)
+        const startMarker = profileContent.includes(this.PROFILE_MARKERS.start)
+          ? this.PROFILE_MARKERS.start
+          : this.LEGACY_MARKERS.start;
+        const endMarker = profileContent.includes(this.PROFILE_MARKERS.end)
+          ? this.PROFILE_MARKERS.end
+          : this.LEGACY_MARKERS.end;
         const startIndex = profileContent.indexOf(startMarker);
 
         if (startIndex === -1) {
-          continue; // No OpenSpec block found
+          continue; // No synarcx block found
         }
 
         const endIndex = profileContent.indexOf(endMarker, startIndex);

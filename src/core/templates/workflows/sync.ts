@@ -1,4 +1,5 @@
 ﻿import type { SkillTemplate, CommandTemplate } from '../types.js';
+import { commandFromSkill } from '../types.js';
 
 export function getSynSyncSkillTemplate(): SkillTemplate {
   return {
@@ -106,10 +107,9 @@ After completion, summarize what was created or updated, note the version, and l
 }
 
 export function getSynSyncCommandTemplate(): CommandTemplate {
-  return {
+  return commandFromSkill(getSynSyncSkillTemplate(), {
     name: 'syn:sync',
     description: 'Generate/update project constitution with README validation, guardrail Q&A, and constraint capture',
-    category: 'Workflow',
     tags: ['workflow', 'sync', 'project'],
     content: `Generate or update the project constitution — a living document in \`synspec/constitution.md\` that captures validated project context.
 
@@ -163,5 +163,5 @@ Still run the README gate even when constitution exists — README may have degr
 ## Output
 
 Summarize what was created/updated, note the version, and show how many Q&A questions were answered.`
-  };
+  })
 }

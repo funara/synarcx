@@ -5,6 +5,7 @@
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate, CommandTemplate } from '../types.js';
+import { commandFromSkill } from '../types.js';
 
 export function getSynExploreSkillTemplate(): SkillTemplate {
   return {
@@ -303,10 +304,9 @@ But this summary is optional. Sometimes the thinking IS the value.
 }
 
 export function getSynExploreCommandTemplate(): CommandTemplate {
-  return {
+  return commandFromSkill(getSynExploreSkillTemplate(), {
     name: 'syn:explore',
     description: 'Enter explore mode - think through ideas, investigate problems, clarify requirements',
-    category: 'Workflow',
     tags: ['workflow', 'explore', 'thinking'],
     content: `Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
 
@@ -483,5 +483,5 @@ When things crystallize, you might offer a summary - but it's optional. Sometime
 - **Do visualize** - A good diagram is worth many paragraphs
 - **Do explore the codebase** - Ground discussions in reality
 - **Do question assumptions** - Including the user's and your own`
-  };
+  })
 }

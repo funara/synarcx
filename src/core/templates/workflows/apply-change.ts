@@ -5,6 +5,7 @@
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate, CommandTemplate } from '../types.js';
+import { commandFromSkill } from '../types.js';
 
 export function getSynApplySkillTemplate(): SkillTemplate {
   return {
@@ -162,10 +163,9 @@ This skill supports the "actions on a change" model:
 }
 
 export function getSynApplyCommandTemplate(): CommandTemplate {
-  return {
+  return commandFromSkill(getSynApplySkillTemplate(), {
     name: 'syn:apply',
     description: 'Implement tasks from a synarcx change',
-    category: 'Workflow',
     tags: ['workflow', 'artifacts'],
     content: `Implement tasks from a synarcx change.
 
@@ -312,5 +312,5 @@ This skill supports the "actions on a change" model:
 
 - **Can be invoked anytime**: Before all artifacts are done (if tasks exist), after partial implementation, interleaved with other actions
 - **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly`
-  };
+  })
 }

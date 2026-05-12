@@ -7,9 +7,9 @@ import { SYNSPEC_DIR_NAME } from './config.js';
 
 export class ViewCommand {
   async execute(targetPath: string = '.'): Promise<void> {
-    const openspecDir = path.join(targetPath, SYNSPEC_DIR_NAME);
+    const synspecDir = path.join(targetPath, SYNSPEC_DIR_NAME);
     
-    if (!fs.existsSync(openspecDir)) {
+    if (!fs.existsSync(synspecDir)) {
       console.error(chalk.red('No synspec directory found'));
       process.exit(1);
     }
@@ -18,8 +18,8 @@ export class ViewCommand {
     console.log('═'.repeat(60));
 
     // Get changes and specs data
-    const changesData = await this.getChangesData(openspecDir);
-    const specsData = await this.getSpecsData(openspecDir);
+    const changesData = await this.getChangesData(synspecDir);
+    const specsData = await this.getSpecsData(synspecDir);
 
     // Display summary metrics
     this.displaySummary(changesData, specsData);
@@ -79,12 +79,12 @@ export class ViewCommand {
     console.log(chalk.dim(`\nUse ${chalk.white('synarcx list --changes')} or ${chalk.white('synarcx list --specs')} for detailed views`));
   }
 
-  private async getChangesData(openspecDir: string): Promise<{
+  private async getChangesData(synspecDir: string): Promise<{
     draft: Array<{ name: string }>;
     active: Array<{ name: string; progress: { total: number; completed: number } }>;
     completed: Array<{ name: string }>;
   }> {
-    const changesDir = path.join(openspecDir, 'changes');
+    const changesDir = path.join(synspecDir, 'changes');
 
     if (!fs.existsSync(changesDir)) {
       return { draft: [], active: [], completed: [] };
@@ -130,8 +130,8 @@ export class ViewCommand {
     return { draft, active, completed };
   }
 
-  private async getSpecsData(openspecDir: string): Promise<Array<{ name: string; requirementCount: number }>> {
-    const specsDir = path.join(openspecDir, 'specs');
+  private async getSpecsData(synspecDir: string): Promise<Array<{ name: string; requirementCount: number }>> {
+    const specsDir = path.join(synspecDir, 'specs');
     
     if (!fs.existsSync(specsDir)) {
       return [];

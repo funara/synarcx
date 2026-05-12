@@ -42,35 +42,22 @@ import {
   type ToolSkillStatus,
 } from './shared/index.js';
 import { getGlobalConfig, type Delivery, type Profile } from './global-config.js';
-import { getProfileWorkflows, CORE_WORKFLOWS, ALL_WORKFLOWS } from './profiles.js';
+import { getProfileWorkflows } from './profiles.js';
+import { ALL_WORKFLOWS, WORKFLOW_TO_SKILL_DIR, DEFAULT_SCHEMA } from './shared/workflow-registry.js';
+import { removeSkillDirs, removeCommandFiles } from './shared/artifact-cleanup.js';
 import { getAvailableTools } from './available-tools.js';
 import { migrateIfNeeded } from './migration.js';
 
 const require = createRequire(import.meta.url);
-const { version: SYNC_VERSION } = require('../../package.json');
+const { version: SYNARCX_VERSION } = require('../../package.json');
 
 // -----------------------------------------------------------------------------
 // Constants
 // -----------------------------------------------------------------------------
 
-const DEFAULT_SCHEMA = 'synarcx';
-
 const PROGRESS_SPINNER = {
   interval: 80,
   frames: ['░░░', '▒░░', '▒▒░', '▒▒▒', '▓▒▒', '▓▓▒', '▓▓▓', '▒▓▓', '░▒▓'],
-};
-
-const WORKFLOW_TO_SKILL_DIR: Record<string, string> = {
-  'explore': 'syn-explore',
-  'apply': 'syn-apply',
-  'archive': 'syn-archive',
-  'propose': 'syn-propose',
-  'sync': 'syn-sync',
-  'clarify': 'syn-clarify',
-  'analyze': 'syn-analyze',
-  'debug': 'syn-debug',
-  'refactor': 'syn-refactor',
-  'quick': 'syn-quick',
 };
 
 // -----------------------------------------------------------------------------
@@ -103,11 +90,11 @@ export class InitCommand {
 
   async execute(targetPath: string): Promise<void> {
     const projectPath = path.resolve(targetPath);
-    const openspecDir = SYNSPEC_DIR_NAME;
-    const openspecPath = path.join(projectPath, openspecDir);
+    const synspecDir = SYNSPEC_DIR_NAME;
+    const synspecPath = path.join(projectPath, synspecDir);
 
     // Validation happens silently in the background
-    const extendMode = await this.validate(projectPath, openspecPath);
+    const extendMode = await this.validate(projectPath, synspecPath);
 
     // Check for legacy artifacts and handle cleanup
     await this.handleLegacyCleanup(projectPath, extendMode);
@@ -141,13 +128,13 @@ export class InitCommand {
     const validatedTools = this.validateTools(selectedToolIds, toolStates);
 
     // Create directory structure and config
-    await this.createDirectoryStructure(openspecPath, extendMode);
+    await this.createDirectoryStructure(synspecPath, extendMode);
 
     // Generate skills and commands for each tool
     const results = await this.generateSkillsAndCommands(projectPath, validatedTools);
 
     // Create config.yaml if needed
-    const configStatus = await this.createConfig(openspecPath, extendMode);
+    const configStatus = await this.createConfig(synspecPath, extendMode);
 
     // Display success message
     this.displaySuccessMessage(projectPath, validatedTools, results, configStatus);
@@ -159,9 +146,9 @@ export class InitCommand {
 
   private async validate(
     projectPath: string,
-    openspecPath: string
+    synspecPath: string
   ): Promise<boolean> {
-    const extendMode = await FileSystemUtils.directoryExists(openspecPath);
+    const extendMode = await FileSystemUtils.directoryExists(synspecPath);
 
     // Check write permissions
     if (!(await FileSystemUtils.ensureWritePermissions(projectPath))) {
@@ -209,7 +196,7 @@ export class InitCommand {
 
     if (this.force || !canPrompt) {
       // --force flag or non-interactive mode: proceed with cleanup automatically.
-      // Legacy slash commands are 100% OpenSpec-managed, and config file cleanup
+      // Legacy slash commands are 100% synarcx-managed, and config file cleanup
       // only removes markers (never deletes files), so auto-cleanup is safe.
       await this.performLegacyCleanup(projectPath, detection);
       return;
@@ -451,14 +438,14 @@ export class InitCommand {
   // DIRECTORY STRUCTURE
   // ═══════════════════════════════════════════════════════════
 
-  private async createDirectoryStructure(openspecPath: string, extendMode: boolean): Promise<void> {
+  private async createDirectoryStructure(synspecPath: string, extendMode: boolean): Promise<void> {
     if (extendMode) {
       // In extend mode, just ensure directories exist without spinner
       const directories = [
-        openspecPath,
-        path.join(openspecPath, 'specs'),
-        path.join(openspecPath, 'changes'),
-        path.join(openspecPath, 'changes', 'archive'),
+        synspecPath,
+        path.join(synspecPath, 'specs'),
+        path.join(synspecPath, 'changes'),
+        path.join(synspecPath, 'changes', 'archive'),
       ];
 
       for (const dir of directories) {
@@ -470,10 +457,10 @@ export class InitCommand {
     const spinner = this.startSpinner('Creating synarcx structure...');
 
     const directories = [
-      openspecPath,
-      path.join(openspecPath, 'specs'),
-      path.join(openspecPath, 'changes'),
-      path.join(openspecPath, 'changes', 'archive'),
+      synspecPath,
+      path.join(synspecPath, 'specs'),
+      path.join(synspecPath, 'changes'),
+      path.join(synspecPath, 'changes', 'archive'),
     ];
 
     for (const dir of directories) {
@@ -541,7 +528,7 @@ export class InitCommand {
             // Generate SKILL.md content with YAML frontmatter including generatedBy
             // Use hyphen-based command references for tools where filename = command name
             const transformer = tool.value === 'pi' ? transformToHyphenCommands : undefined;
-            const skillContent = generateSkillContent(template, SYNC_VERSION, transformer);
+            const skillContent = generateSkillContent(template, SYNARCX_VERSION, transformer);
 
             // Write the skill file
             await FileSystemUtils.writeFile(skillFile, skillContent);
@@ -549,7 +536,7 @@ export class InitCommand {
         }
         if (!generateSkillsForTool) {
           const skillsDir = path.join(projectPath, tool.skillsDir, 'skills');
-          removedSkillCount += await this.removeSkillDirs(skillsDir);
+          removedSkillCount += await removeSkillDirs(skillsDir);
         }
 
         // Generate commands if delivery includes commands
@@ -567,7 +554,7 @@ export class InitCommand {
           }
         }
         if (!shouldGenerateCommands) {
-          removedCommandCount += await this.removeCommandFiles(projectPath, tool.value);
+          removedCommandCount += await removeCommandFiles(projectPath, tool.value);
         }
 
         spinner.succeed(`Setup complete for ${tool.name}`);
@@ -597,9 +584,9 @@ export class InitCommand {
   // CONFIG FILE
   // ═══════════════════════════════════════════════════════════
 
-  private async createConfig(openspecPath: string, extendMode: boolean): Promise<'created' | 'exists' | 'skipped'> {
-    const configPath = path.join(openspecPath, 'config.yaml');
-    const configYmlPath = path.join(openspecPath, 'config.yml');
+  private async createConfig(synspecPath: string, extendMode: boolean): Promise<'created' | 'exists' | 'skipped'> {
+    const configPath = path.join(synspecPath, 'config.yaml');
+    const configYmlPath = path.join(synspecPath, 'config.yml');
     const configYamlExists = fs.existsSync(configPath);
     const configYmlExists = fs.existsSync(configYmlPath);
 
@@ -729,46 +716,4 @@ export class InitCommand {
     }).start();
   }
 
-  private async removeSkillDirs(skillsDir: string): Promise<number> {
-    let removed = 0;
-
-    for (const workflow of ALL_WORKFLOWS) {
-      const dirName = WORKFLOW_TO_SKILL_DIR[workflow];
-      if (!dirName) continue;
-
-      const skillDir = path.join(skillsDir, dirName);
-      try {
-        if (fs.existsSync(skillDir)) {
-          await fs.promises.rm(skillDir, { recursive: true, force: true });
-          removed++;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return removed;
-  }
-
-  private async removeCommandFiles(projectPath: string, toolId: string): Promise<number> {
-    let removed = 0;
-    const adapter = CommandAdapterRegistry.get(toolId);
-    if (!adapter) return 0;
-
-    for (const workflow of ALL_WORKFLOWS) {
-      const cmdPath = adapter.getFilePath(workflow);
-      const fullPath = path.isAbsolute(cmdPath) ? cmdPath : path.join(projectPath, cmdPath);
-
-      try {
-        if (fs.existsSync(fullPath)) {
-          await fs.promises.unlink(fullPath);
-          removed++;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return removed;
-  }
 }
