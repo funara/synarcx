@@ -10,32 +10,32 @@ jobs:
   build-check:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11
-      - run: cd website && pnpm install
-      - run: cd website && pnpm build
+      - run: npm install
+      - run: npm run build
 
   deploy:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    defaults:
+      run:
+        working-directory: website
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11
-      - run: cd website && pnpm install
-      - run: cd website && pnpm build
+      - run: npm install
+      - run: npm run build
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
