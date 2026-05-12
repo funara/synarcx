@@ -1,13 +1,20 @@
 {
   "name": "synarcx",
   "version": "0.2.0",
-  "description": "SynArcX — Synapse Architecture Code Extension. Spec-driven development workflow for AI coding agents.",
+  "description": "Structured engineering workflows for AI coding assistants — persistent project memory, spec-driven development, and architecture drift prevention across every session.",
   "keywords": [
-    "synarcx",
-    "specs",
-    "cli",
-    "ai",
-    "development"
+    "ai-workflow",
+    "claude-code",
+    "cursor",
+    "spec-driven-development",
+    "ai-coding-assistant",
+    "architecture-drift",
+    "persistent-context",
+    "engineering-workflow",
+    "ai-coding-workflow",
+    "specification",
+    "claude-code-workflow",
+    "ai-context-management"
   ],
   "homepage": "https://github.com/funara/synarcx",
   "repository": {
