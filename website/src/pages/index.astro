@@ -1,0 +1,238 @@
+---
+import Layout from '../layouts/Layout.astro'
+---
+
+<Layout>
+  <main class="min-h-screen bg-gray-950 text-gray-100">
+    <div class="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
+      <!-- Hero -->
+      <section class="mb-24 text-center">
+        <h1 class="mb-4 text-5xl font-bold tracking-tight sm:text-6xl">
+          SynArcX
+        </h1>
+        <p class="mx-auto mb-8 max-w-2xl text-lg text-gray-400">
+          Structured engineering workflows for AI coding assistants — persistent project memory, spec-driven development, and architecture drift prevention across every session.
+        </p>
+        <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <a
+            href="https://github.com/funara/synarcx"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 rounded-lg bg-gray-800 px-6 py-3 text-sm font-medium text-white transition hover:bg-gray-700"
+          >
+            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.085 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12 24 5.37 18.63 0 12 0z"/></svg>
+            Star on GitHub
+          </a>
+          <div class="rounded-lg bg-gray-800 px-4 py-3 font-mono text-sm text-gray-300">
+            npm install -g synarcx
+          </div>
+        </div>
+      </section>
+
+      <!-- Problem -->
+      <section class="mb-24">
+        <h2 class="mb-6 text-2xl font-bold">The Problem: Architecture Drift in AI-Assisted Development</h2>
+        <p class="mb-4 text-gray-400">
+          AI coding assistants like Claude Code and Cursor lose context fast. Requirements live in chat history. Architecture decisions vanish between sessions. Generated code drifts from design intent.
+        </p>
+        <p class="text-gray-400">
+          Without an explicit workflow, AI-generated code gradually drifts from your architecture — each session introduces small misalignments that compound into structural debt. This is architecture drift, and it gets worse the longer the project runs.
+        </p>
+      </section>
+
+      <!-- Ignore SynArcX -->
+      <section class="mb-24">
+        <h2 class="mb-6 text-2xl font-bold">What Happens If You Ignore SynArcX?</h2>
+        <p class="mb-4 text-gray-400">Nothing breaks immediately. That's the problem.</p>
+        <pre class="overflow-x-auto rounded-lg bg-gray-900 p-6 text-sm text-gray-300"><code>Week 1   AI reads the codebase, builds the feature correctly.
+
+Week 3   New session. AI re-derives context from code alone.
+         Small assumptions diverge from your actual design.
+
+Week 6   Three sessions in. The auth module now does things
+         no spec ever said it should. The AI was "helpful."
+
+Week 10  You're untangling AI-introduced architecture violations
+         instead of shipping features. The specs live in a chat
+         log nobody can find.</code></pre>
+        <p class="mt-4 text-gray-400">SynArcX makes the spec the source of truth, not the chat history.</p>
+      </section>
+
+      <!-- Why Not -->
+      <section class="mb-24">
+        <h2 class="mb-6 text-2xl font-bold">Why Not Just Prompt Better?</h2>
+        <p class="mb-6 text-gray-400">
+          Better prompts help, but they don't survive session resets, tool switches, or team handoffs. Every new session starts cold. Every new contributor re-explains the same constraints.
+        </p>
+        <p class="mb-6 text-gray-400">
+          SynArcX makes your engineering decisions durable. The <code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-sm">constitution.md</code> is always there. The specs don't live in someone's chat history.
+        </p>
+
+        <h2 class="mb-6 text-2xl font-bold">Why Not Just Use Another Spec Format?</h2>
+        <p class="mb-4 text-gray-400">
+          Spec formats describe <em>what</em> to build.
+        </p>
+        <p class="mb-4 text-gray-400">
+          SynArcX structures <em>how you get there</em> — from exploration to proposal to implementation, and helps keep AI-generated changes aligned with the evolving codebase at every stage, not just at planning time.
+        </p>
+        <p class="text-gray-400">
+          If you already have markdown specs in your repo, <code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-sm">/syn:sync</code> will incorporate them into the <code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-sm">constitution.md</code>.
+        </p>
+      </section>
+
+      <!-- How It Works -->
+      <section class="mb-24">
+        <h2 class="mb-6 text-2xl font-bold">How It Works: Spec-Driven AI Coding Workflow</h2>
+        <p class="mb-4 font-semibold text-gray-300">Without SynArcX, development drift compounds silently:</p>
+        <pre class="mb-8 overflow-x-auto rounded-lg bg-gray-900 p-6 text-sm text-gray-300"><code>Session 1  ──►  Session 2  ──►  Session 3  ──►  Session N
+✓ correct       ~ close        ✗ diverged     ✗✗ structural debt
+                              (nobody noticed)</code></pre>
+        <p class="mb-4 font-semibold text-gray-300">With SynArcX — alignment is maintained explicitly:</p>
+        <pre class="mb-8 overflow-x-auto rounded-lg bg-gray-900 p-6 text-sm text-gray-300"><code>Session 1  ──►  constitution.md  ──►  Session 2  ──►  constitution.md  ──►  Session N
+✓ correct          (updated)          ✓ correct         (updated)          ✓ correct
+
+	specs · architecture · intent preserved across every reset</code></pre>
+        <p class="mb-4 font-semibold text-gray-300">The workflow:</p>
+        <pre class="mb-6 overflow-x-auto rounded-lg bg-gray-900 p-6 text-sm text-gray-300"><code>sync ──────────────────────────────────────────────────► constitution
+
+explore  ──┐
+debug    ──┤
+           ├──► propose ──► clarify ──► analyze ──► apply ──► archive
+refactor ──┘
+
+quick ────────────────────────────────────────────────────────► apply</code></pre>
+        <p class="mb-4 text-gray-400">
+          Each step suggests the next — you decide when to advance. Works in Claude Code, Cursor, Cline, and any AI coding tool that supports slash commands.
+        </p>
+        <ul class="ml-6 list-disc space-y-1 text-gray-400">
+          <li><code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-sm">sync</code> generates the <code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-sm">constitution.md</code> — run once, re-run when the project shifts</li>
+          <li><code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-sm">explore</code>, <code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-sm">debug</code>, and <code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-sm">refactor</code> are entry points that hand off to <code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-sm">propose</code></li>
+          <li><code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-sm">quick</code> skips the pipeline for small, low-risk changes</li>
+        </ul>
+      </section>
+
+      <!-- Commands Table -->
+      <section class="mb-24">
+        <h2 class="mb-6 text-2xl font-bold">Commands</h2>
+        <p class="mb-4 text-sm text-gray-400">Used inside your AI coding tool (Claude Code, Cursor, Cline, etc.):</p>
+        <div class="overflow-x-auto rounded-lg bg-gray-900">
+          <table class="w-full text-left text-sm">
+            <thead>
+              <tr class="border-b border-gray-700 text-gray-400">
+                <th class="px-4 py-3 font-medium">Command</th>
+                <th class="px-4 py-3 font-medium">Description</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-purple-400">/syn:sync</td><td class="px-4 py-3 text-gray-300">Scan project, run guardrail Q&A, generate/update <code class="rounded bg-gray-800 px-1 font-mono">constitution.md</code></td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-purple-400">/syn:explore</td><td class="px-4 py-3 text-gray-300">Think through ideas, investigate problems, clarify requirements</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-purple-400">/syn:debug</td><td class="px-4 py-3 text-gray-300">Diagnose a known error (3-phase analysis), then prompts /syn:propose</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-purple-400">/syn:refactor</td><td class="px-4 py-3 text-gray-300">Map current vs target structure, then prompts /syn:propose</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-purple-400">/syn:quick</td><td class="px-4 py-3 text-gray-300">Fast-path for small low-risk changes — inline preview, confirm, apply</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-purple-400">/syn:propose</td><td class="px-4 py-3 text-gray-300">Create a new change with proposal, specs, design, and tasks</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-purple-400">/syn:clarify</td><td class="px-4 py-3 text-gray-300">Ask up to 5 targeted questions to sharpen artifacts</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-purple-400">/syn:analyze</td><td class="px-4 py-3 text-gray-300">Cross-artifact consistency check across all change artifacts</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-purple-400">/syn:apply</td><td class="px-4 py-3 text-gray-300">Implement tasks from a change's task list</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-purple-400">/syn:archive</td><td class="px-4 py-3 text-gray-300">Archive a completed change and sync specs</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="mb-4 mt-8 text-sm text-gray-400">Used in your terminal:</p>
+        <div class="overflow-x-auto rounded-lg bg-gray-900">
+          <table class="w-full text-left text-sm">
+            <thead>
+              <tr class="border-b border-gray-700 text-gray-400">
+                <th class="px-4 py-3 font-medium">Command</th>
+                <th class="px-4 py-3 font-medium">Description</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-green-400">synarcx init</td><td class="px-4 py-3 text-gray-300">Set up SynArcX workflow structure in your repository</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-green-400">synarcx sync</td><td class="px-4 py-3 text-gray-300">Regenerate <code class="rounded bg-gray-800 px-1 font-mono">constitution.md</code></td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-green-400">synarcx explore</td><td class="px-4 py-3 text-gray-300">Open explore session</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-green-400">synarcx propose</td><td class="px-4 py-3 text-gray-300">Create a structured change proposal</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-green-400">synarcx clarify</td><td class="px-4 py-3 text-gray-300">Refine requirements into explicit specifications</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-green-400">synarcx analyze</td><td class="px-4 py-3 text-gray-300">Evaluate architecture impact and tradeoffs</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-green-400">synarcx apply</td><td class="px-4 py-3 text-gray-300">Execute implementation tasks</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-green-400">synarcx quick</td><td class="px-4 py-3 text-gray-300">Fast-path execution for small changes</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Artifacts -->
+      <section class="mb-24">
+        <h2 class="mb-6 text-2xl font-bold">Artifacts</h2>
+        <p class="mb-4 text-sm text-gray-400">Each workflow stage produces explicit, reviewable files:</p>
+        <div class="overflow-x-auto rounded-lg bg-gray-900">
+          <table class="w-full text-left text-sm">
+            <thead>
+              <tr class="border-b border-gray-700 text-gray-400">
+                <th class="px-4 py-3 font-medium">Artifact</th>
+                <th class="px-4 py-3 font-medium">Purpose</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-cyan-400">proposal.md</td><td class="px-4 py-3 text-gray-300">Problem framing: what, why, and scope</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-cyan-400">specs/*.md</td><td class="px-4 py-3 text-gray-300">Clarified requirements: what the system shall do</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-cyan-400">design.md</td><td class="px-4 py-3 text-gray-300">Architectural reasoning: how to build it</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-cyan-400">tasks.md</td><td class="px-4 py-3 text-gray-300">Implementation checklist</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 font-mono text-cyan-400">constitution.md</td><td class="px-4 py-3 text-gray-300">Persistent project memory for AI agents</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Comparison -->
+      <section class="mb-24">
+        <h2 class="mb-6 text-2xl font-bold">SynArcX vs. Unstructured AI Coding</h2>
+        <div class="overflow-x-auto rounded-lg bg-gray-900">
+          <table class="w-full text-left text-sm">
+            <thead>
+              <tr class="border-b border-gray-700 text-gray-400">
+                <th class="px-4 py-3 font-medium">Capability</th>
+                <th class="px-4 py-3 font-medium">Without SynArcX</th>
+                <th class="px-4 py-3 font-medium">With SynArcX</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 text-gray-300">Persistent engineering memory</td><td class="px-4 py-3 text-red-400">Lost between sessions</td><td class="px-4 py-3 text-green-400">Preserved in <code class="rounded bg-gray-800 px-1 font-mono">constitution.md</code></td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 text-gray-300">Structured specification flow</td><td class="px-4 py-3 text-red-400">Informal, chat-based</td><td class="px-4 py-3 text-green-400">Explicit staged workflow</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 text-gray-300">Architecture-aware changes</td><td class="px-4 py-3 text-red-400">Inconsistent</td><td class="px-4 py-3 text-green-400">Built into every step</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 text-gray-300">Artifact traceability</td><td class="px-4 py-3 text-red-400">None</td><td class="px-4 py-3 text-green-400">Proposal → spec → design → tasks</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 text-gray-300">Session continuity</td><td class="px-4 py-3 text-red-400">Weak</td><td class="px-4 py-3 text-green-400">Persistent across tools and sessions</td></tr>
+              <tr class="hover:bg-gray-800/50"><td class="px-4 py-3 text-gray-300">Low-risk fast path</td><td class="px-4 py-3 text-red-400">Manual</td><td class="px-4 py-3 text-green-400"><code class="rounded bg-gray-800 px-1 font-mono">/syn:quick</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Supported Tools -->
+      <section class="mb-24">
+        <h2 class="mb-6 text-2xl font-bold">Supported AI Coding Tools</h2>
+        <p class="text-gray-400">
+          SynArcX works with Claude Code, Cursor, GitHub Copilot, Cline, Windsurf, Codex, Gemini, OpenCode, and more. Slash commands are generated per tool on <code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-sm">synarcx init</code> — each tool gets its own command syntax automatically.
+        </p>
+      </section>
+
+      <!-- Install -->
+      <section class="mb-24">
+        <h2 class="mb-6 text-2xl font-bold">Install</h2>
+        <p class="mb-4 text-sm text-gray-400">Requires <strong class="text-gray-200">Node.js 20+</strong></p>
+        <div class="mb-4 rounded-lg bg-gray-900 p-4">
+          <pre class="text-sm text-gray-300"><code>npm install -g synarcx</code></pre>
+        </div>
+        <div class="mb-4 rounded-lg bg-gray-900 p-4">
+          <pre class="text-sm text-gray-300"><code>pnpm add -g synarcx</code></pre>
+        </div>
+        <p class="text-sm text-gray-400">Verify: <code class="rounded bg-gray-800 px-1.5 py-0.5 font-mono">synarcx --help</code></p>
+      </section>
+
+      <!-- Footer -->
+      <footer class="border-t border-gray-800 pt-8 text-center text-sm text-gray-500">
+        <p>MIT License &middot; <a href="https://github.com/funara/synarcx" class="underline hover:text-gray-300">GitHub</a></p>
+      </footer>
+    </div>
+  </main>
+</Layout>
