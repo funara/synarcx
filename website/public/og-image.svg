@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#030712"/>
+  <text x="600" y="260" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="800" fill="#f9fafb" text-anchor="middle" letter-spacing="-2">SynArcX</text>
+  <text x="600" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="#9ca3af" text-anchor="middle">Structured AI Coding Workflows</text>
+  <text x="600" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="#9ca3af" text-anchor="middle">&amp; Persistent Project Memory</text>
+  <line x1="400" y1="410" x2="800" y2="410" stroke="#374151" stroke-width="1"/>
+  <text x="600" y="460" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#6b7280" text-anchor="middle">spec-driven development · architecture drift prevention</text>
+  <text x="600" y="490" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#6b7280" text-anchor="middle">persistent project memory for AI coding assistants</text>
+</svg>
