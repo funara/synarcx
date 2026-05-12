@@ -7,42 +7,12 @@
 import path from 'path';
 import * as fs from 'fs';
 import { AI_TOOLS } from '../config.js';
+import { SKILL_NAMES, COMMAND_IDS } from './workflow-registry.js'
 
-/**
- * Names of skill directories created by synarcx init.
- */
-export const SKILL_NAMES = [
-  'syn-explore',
-  'syn-apply',
-  'syn-archive',
-  'syn-propose',
-  'syn-sync',
-  'syn-clarify',
-  'syn-analyze',
-  'syn-debug',
-  'syn-refactor',
-  'syn-quick',
-] as const;
+export type SkillName = string;
+export type CommandId = string;
 
-export type SkillName = (typeof SKILL_NAMES)[number];
-
-/**
- * IDs of command templates created by synarcx init.
- */
-export const COMMAND_IDS = [
-  'explore',
-  'apply',
-  'archive',
-  'propose',
-  'sync',
-  'clarify',
-  'analyze',
-  'debug',
-  'refactor',
-  'quick',
-] as const;
-
-export type CommandId = (typeof COMMAND_IDS)[number];
+export { SKILL_NAMES, COMMAND_IDS }
 
 /**
  * Status of skill configuration for a tool.
@@ -136,7 +106,7 @@ export function extractGeneratedByVersion(skillFilePath: string): string | null 
     // ---
     // ...
     // metadata:
-    //   author: openspec
+    //   author: synarcx
     //   version: "1.0"
     //   generatedBy: "0.23.0"
     // ---

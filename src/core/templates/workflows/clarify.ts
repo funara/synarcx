@@ -1,4 +1,5 @@
 ﻿import type { SkillTemplate, CommandTemplate } from '../types.js';
+import { commandFromSkill } from '../types.js';
 
 export function getSynClarifySkillTemplate(): SkillTemplate {
   return {
@@ -60,10 +61,9 @@ After completing, summarize:
 }
 
 export function getSynClarifyCommandTemplate(): CommandTemplate {
-  return {
+  return commandFromSkill(getSynClarifySkillTemplate(), {
     name: 'syn:clarify',
     description: 'Ask up to 5 targeted questions to improve change artifacts',
-    category: 'Workflow',
     tags: ['workflow', 'clarify'],
     content: `Ask targeted clarification questions about a change to improve its artifacts before implementation.
 
@@ -106,5 +106,5 @@ After completing, summarize:
 - What was clarified
 - Which artifacts were updated
 - Next step: Run \`/syn:analyze\` to check consistency across artifacts`
-  };
+  })
 }

@@ -1,4 +1,5 @@
 ﻿import type { SkillTemplate, CommandTemplate } from '../types.js';
+import { commandFromSkill } from '../types.js';
 
 export function getSynQuickSkillTemplate(): SkillTemplate {
   return {
@@ -86,10 +87,9 @@ After applying:
 }
 
 export function getSynQuickCommandTemplate(): CommandTemplate {
-  return {
+  return commandFromSkill(getSynQuickSkillTemplate(), {
     name: 'syn:quick',
     description: 'Apply a small, low-risk change directly — no artifacts, inline preview, confirmation step',
-    category: 'Workflow',
     tags: ['workflow', 'quick', 'fast'],
     content: `Apply a small, low-risk change directly — no proposal, no specs, no artifacts. Describes the change inline, asks the user to confirm, then applies after confirmation.
 
@@ -127,5 +127,5 @@ Ask "Apply this change?" with Yes/No options. Apply only after confirmation.
 ## Apply
 
 Make the change. No synspec artifacts are created.`
-  };
+  })
 }

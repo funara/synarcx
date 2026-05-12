@@ -1,4 +1,5 @@
 ﻿import type { SkillTemplate, CommandTemplate } from '../types.js';
+import { commandFromSkill } from '../types.js';
 
 export function getSynDebugSkillTemplate(): SkillTemplate {
   return {
@@ -69,10 +70,9 @@ Do NOT create any artifacts, do NOT start the pipeline automatically. The user m
 }
 
 export function getSynDebugCommandTemplate(): CommandTemplate {
-  return {
+  return commandFromSkill(getSynDebugSkillTemplate(), {
     name: 'syn:debug',
     description: 'Investigate a known error — root cause analysis through hypothesis, explicitly prompts /syn:propose',
-    category: 'Workflow',
     tags: ['workflow', 'debug', 'fix'],
     content: `Investigate a known error or failure systematically in 3 phases. Produces a diagnosis and suggests \`/syn:propose\` for creating the fix change.
 
@@ -115,5 +115,5 @@ If a change is active, read its artifacts first to understand what was intended 
 ## Output
 
 After completing, present the diagnosis and explicitly prompt the user to run \`/syn:propose\` to formalize the fix. Do NOT auto-create artifacts.`
-  };
+  })
 }

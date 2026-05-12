@@ -5,6 +5,7 @@
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate, CommandTemplate } from '../types.js';
+import { commandFromSkill } from '../types.js';
 
 export function getSynProposeSkillTemplate(): SkillTemplate {
   return {
@@ -116,10 +117,9 @@ After completing all artifacts, summarize:
 }
 
 export function getSynProposeCommandTemplate(): CommandTemplate {
-  return {
+  return commandFromSkill(getSynProposeSkillTemplate(), {
     name: 'syn:propose',
     description: 'Propose a new change - create it and generate all artifacts in one step',
-    category: 'Workflow',
     tags: ['workflow', 'artifacts', 'experimental'],
     content: `Propose a new change - create the change and generate all artifacts in one step.
 
@@ -220,5 +220,5 @@ After completing all artifacts, summarize:
 - If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
 - If a change with that name already exists, ask if user wants to continue it or create a new one
 - Verify each artifact file exists after writing before proceeding to next`
-  };
+  })
 }

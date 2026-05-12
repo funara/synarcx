@@ -2,31 +2,13 @@ import path from 'path';
 import * as fs from 'fs';
 import { AI_TOOLS } from './config.js';
 import type { Delivery } from './global-config.js';
-import { ALL_WORKFLOWS } from './profiles.js';
+import { ALL_WORKFLOWS, WORKFLOW_TO_SKILL_DIR, COMMAND_IDS } from './shared/workflow-registry.js';
 import { CommandAdapterRegistry } from './command-generation/index.js';
-import { COMMAND_IDS, getConfiguredTools } from './shared/index.js';
+import { getConfiguredTools } from './shared/index.js';
 
-type WorkflowId = (typeof ALL_WORKFLOWS)[number];
-
-/**
- * Maps workflow IDs to their skill directory names.
- */
-export const WORKFLOW_TO_SKILL_DIR: Record<WorkflowId, string> = {
-  'explore': 'syn-explore',
-  'apply': 'syn-apply',
-  'archive': 'syn-archive',
-  'propose': 'syn-propose',
-  'sync': 'syn-sync',
-  'clarify': 'syn-clarify',
-  'analyze': 'syn-analyze',
-  'debug': 'syn-debug',
-  'refactor': 'syn-refactor',
-  'quick': 'syn-quick',
-};
-
-function toKnownWorkflows(workflows: readonly string[]): WorkflowId[] {
+function toKnownWorkflows(workflows: readonly string[]): string[] {
   return workflows.filter(
-    (workflow): workflow is WorkflowId =>
+    (workflow): workflow is string =>
       (ALL_WORKFLOWS as readonly string[]).includes(workflow)
   );
 }
@@ -94,7 +76,7 @@ export function hasToolProfileOrDeliveryDrift(
   if (!tool?.skillsDir) return false;
 
   const knownDesiredWorkflows = toKnownWorkflows(desiredWorkflows);
-  const desiredWorkflowSet = new Set<WorkflowId>(knownDesiredWorkflows);
+  const desiredWorkflowSet = new Set<string>(knownDesiredWorkflows);
   const skillsDir = path.join(projectPath, tool.skillsDir, 'skills');
   const adapter = CommandAdapterRegistry.get(toolId);
   const shouldGenerateSkills = delivery !== 'commands';
@@ -178,11 +160,11 @@ function getInstalledWorkflowsForTool(
   projectPath: string,
   toolId: string,
   options: { includeSkills: boolean; includeCommands: boolean }
-): WorkflowId[] {
+): string[] {
   const tool = AI_TOOLS.find((t) => t.value === toolId);
   if (!tool?.skillsDir) return [];
 
-  const installed = new Set<WorkflowId>();
+  const installed = new Set<string>();
   const skillsDir = path.join(projectPath, tool.skillsDir, 'skills');
 
   if (options.includeSkills) {

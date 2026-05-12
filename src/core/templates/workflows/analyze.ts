@@ -1,4 +1,5 @@
 ﻿import type { SkillTemplate, CommandTemplate } from '../types.js';
+import { commandFromSkill } from '../types.js';
 
 export function getSynAnalyzeSkillTemplate(): SkillTemplate {
   return {
@@ -53,10 +54,9 @@ After completing, summarize:
 }
 
 export function getSynAnalyzeCommandTemplate(): CommandTemplate {
-  return {
+  return commandFromSkill(getSynAnalyzeSkillTemplate(), {
     name: 'syn:analyze',
     description: 'Cross-artifact consistency check for proposal, specs, design, and tasks',
-    category: 'Workflow',
     tags: ['workflow', 'analyze'],
     content: `Run a cross-artifact consistency check for a change. Edits artifacts in place to fix issues found.
 
@@ -99,5 +99,5 @@ After completing, summarize:
 - What artifacts were modified
 - Any remaining concerns
 - Next step: Run \`/syn:apply\` to start implementation`
-  };
+  })
 }

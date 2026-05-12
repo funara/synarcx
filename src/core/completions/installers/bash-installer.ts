@@ -15,6 +15,11 @@ export class BashInstaller {
    * Markers for .bashrc configuration management
    */
   private readonly BASHRC_MARKERS = {
+    start: '# SYNARCX:START',
+    end: '# SYNARCX:END',
+  };
+
+  private readonly LEGACY_MARKERS = {
     start: '# OPENSPEC:START',
     end: '# OPENSPEC:END',
   };
@@ -169,16 +174,24 @@ export class BashInstaller {
       // Read file content
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
+      // Determine which markers to use (check new first, fall back to legacy)
+      const startMarker = content.includes(this.BASHRC_MARKERS.start)
+        ? this.BASHRC_MARKERS.start
+        : this.LEGACY_MARKERS.start;
+      const endMarker = content.includes(this.BASHRC_MARKERS.end)
+        ? this.BASHRC_MARKERS.end
+        : this.LEGACY_MARKERS.end;
+
       // Check if markers exist
-      if (!content.includes(this.BASHRC_MARKERS.start) || !content.includes(this.BASHRC_MARKERS.end)) {
+      if (!content.includes(startMarker) || !content.includes(endMarker)) {
         // Markers don't exist, nothing to remove
         return true;
       }
 
       // Remove content between markers (including markers)
       const lines = content.split('\n');
-      const startIndex = lines.findIndex((line) => line.trim() === this.BASHRC_MARKERS.start);
-      const endIndex = lines.findIndex((line) => line.trim() === this.BASHRC_MARKERS.end);
+      const startIndex = lines.findIndex((line) => line.trim() === startMarker);
+      const endIndex = lines.findIndex((line) => line.trim() === endMarker);
 
       if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
         // Invalid marker placement

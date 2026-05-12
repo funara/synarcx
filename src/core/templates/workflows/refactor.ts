@@ -1,4 +1,5 @@
 ﻿import type { SkillTemplate, CommandTemplate } from '../types.js';
+import { commandFromSkill } from '../types.js';
 
 export function getSynRefactorSkillTemplate(): SkillTemplate {
   return {
@@ -95,10 +96,9 @@ Do NOT create any artifacts or start the pipeline. The user must explicitly run 
 }
 
 export function getSynRefactorCommandTemplate(): CommandTemplate {
-  return {
+  return commandFromSkill(getSynRefactorSkillTemplate(), {
     name: 'syn:refactor',
     description: 'Investigate structural refactoring — map current vs. target shape, then hands off to /syn:propose',
-    category: 'Workflow',
     tags: ['workflow', 'refactor', 'restructure'],
     content: `Investigate a structural refactoring opportunity. Focuses on improving code structure without changing observable behavior. When thinking is clear, explicitly prompts the user to run \`/syn:propose\` — does NOT auto-create artifacts.
 
@@ -124,5 +124,5 @@ When artifacts are created, the analyze phase MUST check for behavior contract v
 ## Hand-Off
 
 Present a summary with Current Shape, Target Shape, Key Changes, and Risks. Then explicitly prompt: "Ready to formalize? Run \`/syn:propose\` to create a change with these findings."`
-  };
+  })
 }

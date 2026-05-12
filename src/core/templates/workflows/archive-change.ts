@@ -5,6 +5,7 @@
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate, CommandTemplate } from '../types.js';
+import { commandFromSkill } from '../types.js';
 
 export function getSynArchiveSkillTemplate(): SkillTemplate {
   return {
@@ -120,10 +121,9 @@ All artifacts complete. All tasks complete.
 }
 
 export function getSynArchiveCommandTemplate(): CommandTemplate {
-  return {
+  return commandFromSkill(getSynArchiveSkillTemplate(), {
     name: 'syn:archive',
     description: 'Archive a completed change in the experimental workflow',
-    category: 'Workflow',
     tags: ['workflow', 'archive', 'experimental'],
     content: `Archive a completed change in the experimental workflow.
 
@@ -275,5 +275,5 @@ Target archive directory already exists.
 - Show clear summary of what happened
 - If sync is requested, use the Skill tool to invoke \`syn:archive\` (agent-driven)
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting`
-  };
+  })
 }

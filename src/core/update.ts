@@ -35,10 +35,16 @@ import {
 } from './legacy-cleanup.js';
 import { isInteractive } from '../utils/interactive.js';
 import { getGlobalConfig, type Delivery, type Profile } from './global-config.js';
-import { getProfileWorkflows, ALL_WORKFLOWS } from './profiles.js';
+import { getProfileWorkflows } from './profiles.js';
+import { ALL_WORKFLOWS, WORKFLOW_TO_SKILL_DIR } from './shared/workflow-registry.js';
+import {
+  removeSkillDirs,
+  removeUnselectedSkillDirs,
+  removeCommandFiles,
+  removeUnselectedCommandFiles,
+} from './shared/artifact-cleanup.js';
 import { getAvailableTools } from './available-tools.js';
 import {
-  WORKFLOW_TO_SKILL_DIR,
   getCommandConfiguredTools,
   getConfiguredToolsForProfileSync,
   getToolsNeedingProfileSync,
@@ -49,7 +55,7 @@ import {
 } from './migration.js';
 
 const require = createRequire(import.meta.url);
-const { version: OPENSPEC_VERSION } = require('../../package.json');
+const { version: SYNARCX_VERSION } = require('../../package.json');
 const OLD_CORE_WORKFLOWS = ['propose', 'explore', 'apply', 'archive'] as const;
 
 /**
@@ -82,10 +88,10 @@ export class UpdateCommand {
 
   async execute(projectPath: string): Promise<void> {
     const resolvedProjectPath = path.resolve(projectPath);
-    const openspecPath = path.join(resolvedProjectPath, SYNSPEC_DIR_NAME);
+    const synspecPath = path.join(resolvedProjectPath, SYNSPEC_DIR_NAME);
 
     // 1. Check synspec directory exists
-    if (!await FileSystemUtils.directoryExists(openspecPath)) {
+    if (!await FileSystemUtils.directoryExists(synspecPath)) {
       throw new Error(`No synarcx directory found. Run 'synarcx init' first.`);
     }
 
@@ -125,7 +131,7 @@ export class UpdateCommand {
     const commandConfiguredTools = getCommandConfiguredTools(resolvedProjectPath);
     const commandConfiguredSet = new Set(commandConfiguredTools);
     const toolStatuses = configuredTools.map((toolId) => {
-      const status = getToolVersionStatus(resolvedProjectPath, toolId, OPENSPEC_VERSION);
+      const status = getToolVersionStatus(resolvedProjectPath, toolId, SYNARCX_VERSION);
       if (!status.configured && commandConfiguredSet.has(toolId)) {
         return { ...status, configured: true };
       }
@@ -198,16 +204,16 @@ export class UpdateCommand {
 
             // Use hyphen-based command references for tools where filename = command name
             const transformer = tool.value === 'pi' ? transformToHyphenCommands : undefined;
-            const skillContent = generateSkillContent(template, OPENSPEC_VERSION, transformer);
+            const skillContent = generateSkillContent(template, SYNARCX_VERSION, transformer);
             await FileSystemUtils.writeFile(skillFile, skillContent);
           }
 
-          removedDeselectedSkillCount += await this.removeUnselectedSkillDirs(skillsDir, desiredWorkflows);
+          removedDeselectedSkillCount += await removeUnselectedSkillDirs(skillsDir, desiredWorkflows);
         }
 
         // Delete skill directories if delivery is commands-only
         if (!shouldGenerateSkills) {
-          removedSkillCount += await this.removeSkillDirs(skillsDir);
+          removedSkillCount += await removeSkillDirs(skillsDir);
         }
 
         // Generate commands if delivery includes commands
@@ -221,7 +227,7 @@ export class UpdateCommand {
               await FileSystemUtils.writeFile(commandFile, cmd.fileContent);
             }
 
-            removedDeselectedCommandCount += await this.removeUnselectedCommandFiles(
+            removedDeselectedCommandCount += await removeUnselectedCommandFiles(
               resolvedProjectPath,
               toolId,
               desiredWorkflows
@@ -231,7 +237,7 @@ export class UpdateCommand {
 
         // Delete command files if delivery is skills-only
         if (!shouldGenerateCommands) {
-          removedCommandCount += await this.removeCommandFiles(resolvedProjectPath, toolId);
+          removedCommandCount += await removeCommandFiles(resolvedProjectPath, toolId);
         }
 
         spinner.succeed(`Updated ${tool.name}`);
@@ -248,7 +254,7 @@ export class UpdateCommand {
     // 11. Summary
     console.log();
     if (updatedTools.length > 0) {
-      console.log(chalk.green(`✓ Updated: ${updatedTools.join(', ')} (v${OPENSPEC_VERSION})`));
+      console.log(chalk.green(`✓ Updated: ${updatedTools.join(', ')} (v${SYNARCX_VERSION})`));
     }
     if (failedTools.length > 0) {
       console.log(chalk.red(`✗ Failed: ${failedTools.map(f => `${f.name} (${f.error})`).join(', ')}`));
@@ -299,7 +305,7 @@ export class UpdateCommand {
    */
   private displayUpToDateMessage(toolStatuses: ToolVersionStatus[]): void {
     const toolNames = toolStatuses.map((s) => s.toolId);
-    console.log(chalk.green(`✓ All ${toolStatuses.length} tool(s) up to date (v${OPENSPEC_VERSION})`));
+    console.log(chalk.green(`✓ All ${toolStatuses.length} tool(s) up to date (v${SYNARCX_VERSION})`));
     console.log(chalk.dim(`  Tools: ${toolNames.join(', ')}`));
     console.log();
     console.log(chalk.dim('Use --force to refresh files anyway.'));
@@ -317,7 +323,7 @@ export class UpdateCommand {
       const status = statusByTool.get(toolId);
       if (status?.needsUpdate) {
         const fromVersion = status.generatedByVersion ?? 'unknown';
-        return `${status.toolId} (${fromVersion} → ${OPENSPEC_VERSION})`;
+        return `${status.toolId} (${fromVersion} → ${SYNARCX_VERSION})`;
       }
       return `${toolId} (config sync)`;
     });
@@ -393,126 +399,7 @@ export class UpdateCommand {
   }
 
   /**
-   * Removes skill directories for workflows when delivery changed to commands-only.
-   * Returns the number of directories removed.
-   */
-  private async removeSkillDirs(skillsDir: string): Promise<number> {
-    let removed = 0;
-
-    for (const workflow of ALL_WORKFLOWS) {
-      const dirName = WORKFLOW_TO_SKILL_DIR[workflow];
-      if (!dirName) continue;
-
-      const skillDir = path.join(skillsDir, dirName);
-      try {
-        if (fs.existsSync(skillDir)) {
-          await fs.promises.rm(skillDir, { recursive: true, force: true });
-          removed++;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return removed;
-  }
-
-  /**
-   * Removes skill directories for workflows that are no longer selected in the active profile.
-   * Returns the number of directories removed.
-   */
-  private async removeUnselectedSkillDirs(
-    skillsDir: string,
-    desiredWorkflows: readonly (typeof ALL_WORKFLOWS)[number][]
-  ): Promise<number> {
-    const desiredSet = new Set(desiredWorkflows);
-    let removed = 0;
-
-    for (const workflow of ALL_WORKFLOWS) {
-      if (desiredSet.has(workflow)) continue;
-      const dirName = WORKFLOW_TO_SKILL_DIR[workflow];
-      if (!dirName) continue;
-
-      const skillDir = path.join(skillsDir, dirName);
-      try {
-        if (fs.existsSync(skillDir)) {
-          await fs.promises.rm(skillDir, { recursive: true, force: true });
-          removed++;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return removed;
-  }
-
-  /**
-   * Removes command files for workflows when delivery changed to skills-only.
-   * Returns the number of files removed.
-   */
-  private async removeCommandFiles(
-    projectPath: string,
-    toolId: string,
-  ): Promise<number> {
-    let removed = 0;
-
-    const adapter = CommandAdapterRegistry.get(toolId);
-    if (!adapter) return 0;
-
-    for (const workflow of ALL_WORKFLOWS) {
-      const cmdPath = adapter.getFilePath(workflow);
-      const fullPath = path.isAbsolute(cmdPath) ? cmdPath : path.join(projectPath, cmdPath);
-
-      try {
-        if (fs.existsSync(fullPath)) {
-          await fs.promises.unlink(fullPath);
-          removed++;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return removed;
-  }
-
-  /**
-   * Removes command files for workflows that are no longer selected in the active profile.
-   * Returns the number of files removed.
-   */
-  private async removeUnselectedCommandFiles(
-    projectPath: string,
-    toolId: string,
-    desiredWorkflows: readonly (typeof ALL_WORKFLOWS)[number][]
-  ): Promise<number> {
-    let removed = 0;
-
-    const adapter = CommandAdapterRegistry.get(toolId);
-    if (!adapter) return 0;
-
-    const desiredSet = new Set(desiredWorkflows);
-
-    for (const workflow of ALL_WORKFLOWS) {
-      if (desiredSet.has(workflow)) continue;
-      const cmdPath = adapter.getFilePath(workflow);
-      const fullPath = path.isAbsolute(cmdPath) ? cmdPath : path.join(projectPath, cmdPath);
-
-      try {
-        if (fs.existsSync(fullPath)) {
-          await fs.promises.unlink(fullPath);
-          removed++;
-        }
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return removed;
-  }
-
-  /**
-   * Detect and handle legacy OpenSpec artifacts.
+   * Detect and handle legacy artifacts.
    * Unlike init, update warns but continues if legacy files found in non-interactive mode.
    * Returns array of tool IDs that were newly configured during legacy upgrade.
    */
@@ -690,7 +577,7 @@ export class UpdateCommand {
 
             // Use hyphen-based command references for tools where filename = command name
             const transformer = tool.value === 'pi' ? transformToHyphenCommands : undefined;
-            const skillContent = generateSkillContent(template, OPENSPEC_VERSION, transformer);
+            const skillContent = generateSkillContent(template, SYNARCX_VERSION, transformer);
             await FileSystemUtils.writeFile(skillFile, skillContent);
           }
         }
