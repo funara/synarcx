@@ -38,7 +38,7 @@ sync ─────────────────────────
   - **Add more work**: scope gate reads proposal capabilities + design goals/non-goals. In scope → update artifacts, MUST run `/syn:clarify` then `/syn:apply` then `/syn:review` again (refinement loop). Out of scope → offer archive first, then route to `/syn:propose`.
   - **Start a new change**: routes to `/syn:propose`.
 - `syn:sync` runs a daily version check (first run of each UTC day): if a newer synarcx is available on npm, it prompts the user to auto-update inline. Results cached in `synspec/.version-cache.json`. Silent when up-to-date, no cache miss penalty. **Also checks pending spec syncs**: before the version check, reads `.pending-sync.json` and processes any entries without `syncedAt` using `buildUpdatedSpec()` — catches archives that completed outside review.
-- Run `synarcx update` in your terminal to refresh all skill and command files after installing a new version — this ensures all configured AI tools stay current.
+- Run `synarcx update` in your terminal to refresh all command files after installing a new version — this ensures all configured AI tools stay current.
 - Each command ends by suggesting the next step; the user decides when to advance
 
 ## Schema

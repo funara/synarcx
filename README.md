@@ -147,7 +147,7 @@ Each step suggests the next — you decide when to advance. Works in Claude Code
 - `sync` generates the `constitution.md` — run once, re-run when the project shifts. Also runs a daily version check (prompts to auto-update) and checks for pending spec syncs from recently archived changes.
 - `explore`, `debug`, and `refactor` are entry points that hand off to `propose`
 - `quick` skips the pipeline for small, low-risk changes
-- Run `synarcx update` in your terminal to refresh all skill and command files after installing a new version
+- Run `synarcx update` in your terminal to refresh all command files after installing a new version
 - `review` is a three-way fork:
   - **Archive now**: auto-syncs delta specs to main spec via `buildUpdatedSpec()`, writes `.pending-sync.json` marker, moves to archive. If spec sync fails, the change is already safely in archive; retry on next sync run.
   - **Add more work**: scope gate reads proposal capabilities + design goals/non-goals. In-scope → update artifacts, MUST `/syn:clarify` then `/syn:apply` then `/syn:review` again (loop). Out-of-scope → offer archive then route to `/syn:propose`.
@@ -213,7 +213,7 @@ Used in your terminal:
 | Command             | Description                                                  |
 | ------------------- | ------------------------------------------------------------ |
 | `synarcx init`    | Set up SynArcX workflow structure in your repository         |
-| `synarcx update`  | Refresh skill and command files for all configured tools     |
+| `synarcx update`  | Refresh command files for all configured tools               |
 | `synarcx sync`    | Regenerate `constitution.md`                               |
 | `synarcx explore` | Open explore session                                         |
 | `synarcx propose` | Create a structured change proposal                          |
