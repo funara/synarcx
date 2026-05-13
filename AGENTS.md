@@ -80,7 +80,20 @@ npm publish         # publish to npm (bump version in package.json first)
 pnpm test           # vitest
 ```
 
-Test files live alongside source code.
+Test files live in `test/`.
+
+## Upgrade Migration
+
+When a user runs `synarcx init` or `synarcx update` and their global config has no `profile` field (pre-profile-era install), `migrateIfNeeded()` in `src/core/migration.ts` runs a one-time migration:
+
+- Scans installed workflow artifacts on disk
+- If any found: sets `profile: 'core'` in global config — so the user automatically receives all current and future commands with no manual steps
+- If none found: no-op (brand-new user, defaults apply)
+
+For users who already have `profile: 'custom'` set, `UpdateCommand.syncNewCoreWorkflowsToCustomProfile()` in `src/core/update.ts` runs on every `synarcx update` and auto-adds any missing `ALL_WORKFLOWS` entries to their `workflows` list. This prevents any newly added command from being silently dropped on upgrade.
+
+The invariant: **no user should ever be missing a command because of a version upgrade**.
+
 
 ## Conventions
 
