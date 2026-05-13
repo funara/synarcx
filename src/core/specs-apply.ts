@@ -359,7 +359,10 @@ export async function writeUpdatedSpec(
   // Create target directory if needed
   const targetDir = path.dirname(update.target);
   await fs.mkdir(targetDir, { recursive: true });
-  await fs.writeFile(update.target, rebuilt);
+  // Atomic write: write to .tmp then rename (prevents half-written files on crash)
+  const tmpPath = update.target + '.tmp';
+  await fs.writeFile(tmpPath, rebuilt);
+  await fs.rename(tmpPath, update.target);
 
   const specName = path.basename(path.dirname(update.target));
   console.log(`Applying changes to synspec/specs/${specName}/spec.md:`);
@@ -455,10 +458,12 @@ export async function applySpecs(
     const capability = path.basename(path.dirname(p.update.target));
 
     if (!options.dryRun) {
-      // Write the updated spec
+      // Write the updated spec (atomic: .tmp + rename)
       const targetDir = path.dirname(p.update.target);
       await fs.mkdir(targetDir, { recursive: true });
-      await fs.writeFile(p.update.target, p.rebuilt);
+      const tmpPath = p.update.target + '.tmp';
+      await fs.writeFile(tmpPath, p.rebuilt);
+      await fs.rename(tmpPath, p.update.target);
 
       if (!options.silent) {
         console.log(`Applying changes to synspec/specs/${capability}/spec.md:`);

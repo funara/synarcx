@@ -11,15 +11,20 @@ SynArcX is a spec-driven development workflow with sync, explore, propose, clari
 The intended user flow is:
 
 ```
-sync ─────────────────────────────────────► constitution
-
-explore  ──┐
-debug    ──┤
-           ├──► propose ──► clarify ──► apply ──► review
-           │             └── (auto-analyze) ──┘
-refactor ──┘
-
-quick ───────────────────────────────────────────► apply
+quick ─────────────────────────────────────┐
+                                           │
+explore  ──┐                               │
+debug    ──┤                               ▼
+           ├───► propose ──► clarify ──► apply ──► review
+           │        ▲           ▲                     │
+refactor ──┘        │           │                     │
+                    │           │                     │
+                    │           │     ┌───────────────┼───────────────┐
+                    │           │     ▼               ▼               ▼
+                    │        add more work        new change       archive
+                    │                                 │               │
+                    └─────────────────────────────────┘               ▼
+sync ──────────────────────────────────────────────────────────► constitution
 ```
 
 - `syn:explore`, `syn:debug`, and `syn:refactor` are entry points — all hand off to `syn:propose`
@@ -28,8 +33,12 @@ quick ────────────────────────�
 - `syn:quick` is a fast-path for small, low-risk changes — no artifacts created, inline preview with confirmation, then applies directly
 - `syn:clarify` runs targeted Q&A (adaptive limit, up to 5 then extends for critical unknowns) then auto-analyzes consistency — all in one command
 - `syn:analyze` is auto-run by clarify, but also available standalone for manual use
-- `syn:review` is the terminal quality gate — verifies tasks are complete, runs sanity checks (test/lint/typecheck), and presents a three-way fork (archive, add more work, or start a new change). Archive is handled inline by review.
-- `syn:sync` also runs a daily version check (first run of each UTC day): if a newer synarcx is available on npm, it prompts the user to auto-update inline. Results cached in `synspec/.version-cache.json`. Silent when up-to-date, no cache miss penalty.
+- `syn:review` is the terminal quality gate — verifies tasks are complete, runs sanity checks (test/lint/typecheck), and presents a three-way fork:
+  - **Archive now**: moves change to archive/, auto-runs `buildUpdatedSpec()` to merge delta specs into main specs, writes `.pending-sync.json` marker. Spec sync runs after the move — if it fails, the change is already safely archived; the marker stays for backstop retry.
+  - **Add more work**: scope gate reads proposal capabilities + design goals/non-goals. In scope → update artifacts, MUST run `/syn:clarify` then `/syn:apply` then `/syn:review` again (refinement loop). Out of scope → offer archive first, then route to `/syn:propose`.
+  - **Start a new change**: routes to `/syn:propose`.
+- `syn:sync` runs a daily version check (first run of each UTC day): if a newer synarcx is available on npm, it prompts the user to auto-update inline. Results cached in `synspec/.version-cache.json`. Silent when up-to-date, no cache miss penalty. **Also checks pending spec syncs**: before the version check, reads `.pending-sync.json` and processes any entries without `syncedAt` using `buildUpdatedSpec()` — catches archives that completed outside review.
+- Run `synarcx update` in your terminal to refresh all skill and command files after installing a new version — this ensures all configured AI tools stay current.
 - Each command ends by suggesting the next step; the user decides when to advance
 
 ## Schema
@@ -93,7 +102,6 @@ When a user runs `synarcx init` or `synarcx update` and their global config has 
 For users who already have `profile: 'custom'` set, `UpdateCommand.syncNewCoreWorkflowsToCustomProfile()` in `src/core/update.ts` runs on every `synarcx update` and auto-adds any missing `ALL_WORKFLOWS` entries to their `workflows` list. This prevents any newly added command from being silently dropped on upgrade.
 
 The invariant: **no user should ever be missing a command because of a version upgrade**.
-
 
 ## Conventions
 
