@@ -117,14 +117,15 @@ export function migrateIfNeeded(projectPath: string, tools: AIToolOption[]): voi
     return;
   }
 
-  // Migrate: set profile to custom with detected workflows
-  config.profile = 'custom';
-  config.workflows = installedWorkflows;
+  // Migrate: pre-profile users had the full installed set — that maps to 'core'.
+  // Setting 'core' means they automatically receive every future new command
+  // (e.g. 'review', and anything added later) without any manual steps.
+  config.profile = 'core'
   if (rawConfig.delivery === undefined) {
-    config.delivery = inferDelivery(artifacts);
+    config.delivery = inferDelivery(artifacts)
   }
-  saveGlobalConfig(config);
+  saveGlobalConfig(config)
 
-  console.log(`Migrated: custom profile with ${installedWorkflows.length} workflows`);
-  console.log("New in this version: /syn:propose. Try 'synarcx config profile core' for the streamlined experience.");
+  console.log(`Migrated to core profile — you'll receive all future commands automatically.`)
 }
+

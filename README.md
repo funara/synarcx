@@ -203,12 +203,14 @@ Used in your terminal:
 | Command             | Description                                             |
 | ------------------- | ------------------------------------------------------- |
 | `synarcx init`    | Set up SynArcX workflow structure in your repository    |
+| `synarcx update`  | Refresh skill and command files for all configured tools |
 | `synarcx sync`    | Regenerate `constitution.md`                          |
 | `synarcx explore` | Open explore session                                    |
 | `synarcx propose` | Create a structured change proposal                     |
 | `synarcx clarify` | Targeted Q&A (adaptive limit) + auto consistency checks |
 | `synarcx analyze` | Cross-artifact consistency check (standalone)           |
 | `synarcx apply`   | Execute implementation tasks                            |
+| `synarcx review`  | Verify implementation, run sanity checks, archive when clean |
 | `synarcx quick`   | Fast-path execution for small changes                   |
 
 ---
@@ -264,13 +266,12 @@ SynArcX is evolving toward an architecture-aware workflow system for long-runnin
 
 ## Status
 
-**v0.3.x** — clarify+analyze merged, adaptive Q&A limit, quick command added
+**v0.3.x** — `syn:review` added as the terminal quality gate (verify implementation, run sanity checks, three-way fork: archive, add work, or start fresh); seamless upgrade from v0.2.x (auto-migrates to `core` profile so new commands appear without any manual steps); clarify+analyze merged, adaptive Q&A limit, quick command, debug/refactor guardrail alignment
 
 Active development roadmap:
 
 - stronger repository cognition
 - architecture-aware execution validation
-- workflow guardrails
 - context continuity across tool switches
 - structured, traceable AI engineering pipelines
 

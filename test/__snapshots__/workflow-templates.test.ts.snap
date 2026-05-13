@@ -1,0 +1,142 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`debug command behavior > snapshot matches command template > command template content matches snapshot 1`] = `
+"Investigate a known error or failure systematically in 3 phases. Produces a diagnosis and explicitly prompts the user to run \`/syn:propose\` — does NOT auto-create artifacts or auto-hand off.
+
+**Input**: Error message, symptom, or failure description. The argument after \`/syn:debug\` is what went wrong.
+
+---
+
+## Initial Context
+
+If a change is active, read its artifacts first:
+- \`synspec/changes/<name>/proposal.md\`
+- \`synspec/changes/<name>/design.md\`
+- \`synspec/changes/<name>/tasks.md\`
+
+Use that context to understand what was intended vs. what went wrong.
+
+---
+
+## The 3 Phases
+
+### Phase 1: Root Cause Analysis
+- Reproduce the issue
+- Gather context (error messages, logs, state)
+- Follow the call stack backward
+- Check input assumptions at each layer
+- Identify the root cause (not symptoms)
+- Document findings under \`### Root Cause\`
+
+### Phase 2: Pattern Recognition
+- Is this a known issue or novel?
+- Have similar bugs been fixed before?
+- Is this a class of issues?
+- Check codebase for related patterns
+- Document under \`### Pattern\`
+
+### Phase 3: Hypothesis
+- Formulate fix hypothesis
+- Consider side effects of the fix
+- Consider alternative approaches
+- Determine minimal change needed
+- Document under \`### Hypothesis\`
+
+---
+
+## Output
+
+After completing the 3-phase investigation, present findings and prompt explicitly:
+
+\`\`\`
+### Diagnosis
+
+**Root Cause**: <what was found>
+**Pattern**: <similar issues or novel>
+**Hypothesis**: <proposed fix approach>
+
+**Ready to formalize?** Run \`/syn:propose\` to create a change with these findings.
+\`\`\`
+
+Do NOT create any artifacts, do NOT start the pipeline automatically. The user must explicitly run \`/syn:propose\` to formalize."
+`;
+
+exports[`refactor command behavior > snapshot matches command template > command template content matches snapshot 1`] = `
+"Investigate a structural refactoring opportunity. Focuses on improving code structure without changing observable behavior. When thinking is clear, explicitly prompts the user to run \`/syn:propose\` — does NOT auto-create artifacts.
+
+**Input**: The argument after \`/syn:refactor\` describes what the user wants to restructure.
+
+---
+
+## Initial Context
+
+Check for existing context:
+\`\`\`bash
+synarcx list --json
+\`\`\`
+
+If a relevant change exists, read its artifacts. Otherwise, start fresh.
+
+---
+
+## Reframing the Problem
+
+This is a structural-change investigation. The goal is to improve code organization, reduce duplication, increase cohesion, or decrease coupling — without changing what the system does.
+
+### Opening Question
+
+Start by asking (use AskUserQuestion tool, open-ended):
+> "What part of the codebase feels like it needs restructuring?"
+
+Let the user describe the pain point before diving in.
+
+---
+
+## Investigation
+
+1. **Map the current shape** — read relevant source files, identify:
+   - Module boundaries and responsibilities
+   - Dependency direction
+   - Code duplication or overlapping concerns
+   - Testing patterns
+
+2. **Identify the target shape** — work with the user to define:
+   - What the ideal structure would look like
+   - Which modules or files move where
+   - How dependencies should flow
+
+3. **Surface risks** — flag areas of concern:
+   - Implicit dependencies that aren't visible in imports
+   - Areas where refactoring could make things worse
+   - Testing hazards (brittle tests, high coupling to internals)
+
+4. **Visualize** — use ASCII diagrams to show:
+   - Current vs. target module structure
+   - Dependency direction changes
+   - File/move relationships
+
+---
+
+## Analyze-Gate Note
+
+When artifacts are created, the analyze phase MUST check for behavior contract violations — no public API changes, no output format changes, no new functionality. If violated, flag and suggest reclassifying as a feature.
+
+---
+
+## Hand-Off
+
+When the investigation reaches a clear conclusion, present findings and explicitly prompt:
+
+\`\`\`
+### Refactoring Plan
+
+**Current Shape**: <summary of current structure>
+**Target Shape**: <proposed structure>
+**Key Changes**: <list of structural moves>
+**Risks**: <potential issues>
+
+**Ready to formalize?** Run \`/syn:propose\` to create a change with these findings.
+\`\`\`
+
+Do NOT create any artifacts or start the pipeline. The user must explicitly run \`/syn:propose\`."
+`;

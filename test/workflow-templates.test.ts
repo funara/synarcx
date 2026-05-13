@@ -230,4 +230,51 @@ describe('debug command behavior', () => {
       expect(getSynDebugSkillTemplate().instructions).toContain('design.md')
     })
   })
+
+  describe('has strong closing guardrails', () => {
+    it('command template contains "do NOT start the pipeline"', () => {
+      expect(getSynDebugCommandTemplate().content).toContain('do NOT start the pipeline')
+    })
+    it('command template contains "must explicitly run /syn:propose"', () => {
+      expect(getSynDebugCommandTemplate().content).toContain('must explicitly run `/syn:propose`')
+    })
+  })
+
+  describe('snapshot matches command template', () => {
+    it('command template content matches snapshot', () => {
+      expect(getSynDebugCommandTemplate().content).toMatchSnapshot()
+    })
+  })
+})
+
+describe('refactor command behavior', () => {
+  describe('does not create artifacts or start pipeline', () => {
+    it('command template contains "Do NOT create any artifacts or start the pipeline"', () => {
+      expect(getSynRefactorCommandTemplate().content).toContain('Do NOT create any artifacts or start the pipeline')
+    })
+    it('command template contains "must explicitly run /syn:propose"', () => {
+      expect(getSynRefactorCommandTemplate().content).toContain('must explicitly run `/syn:propose`')
+    })
+  })
+
+  describe('has initial context section', () => {
+    it('command template mentions synarcx list --json', () => {
+      expect(getSynRefactorCommandTemplate().content).toContain('synarcx list --json')
+    })
+  })
+
+  describe('has opening question', () => {
+    it('command template mentions AskUserQuestion tool', () => {
+      expect(getSynRefactorCommandTemplate().content).toContain('AskUserQuestion')
+    })
+    it('command template mentions restructuring question', () => {
+      expect(getSynRefactorCommandTemplate().content).toContain('What part of the codebase feels like it needs restructuring')
+    })
+  })
+
+  describe('snapshot matches command template', () => {
+    it('command template content matches snapshot', () => {
+      expect(getSynRefactorCommandTemplate().content).toMatchSnapshot()
+    })
+  })
 })
