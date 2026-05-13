@@ -1,11 +1,14 @@
 {
   "name": "synarcx",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Structured engineering workflows for AI coding assistants — persistent project memory, spec-driven development, and architecture drift prevention across every session.",
   "keywords": [
     "ai-workflow",
     "claude-code",
     "cursor",
+    "opencode",
+    "codex",
+    "gemini",
     "spec-driven-development",
     "ai-coding-assistant",
     "architecture-drift",
@@ -34,7 +37,7 @@
     }
   },
   "bin": {
-    "synarcx": "bin/synarcx.js"
+    "synarcx": "./dist/index.js"
   },
   "files": [
     "dist",
@@ -77,6 +80,7 @@
     "cross-spawn": "7.0.6",
     "fast-glob": "^3.3.3",
     "ora": "^8.2.0",
+    "synarcx": "link:",
     "yaml": "^2.8.2",
     "zod": "^4.0.17"
   }

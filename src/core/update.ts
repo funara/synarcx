@@ -219,13 +219,13 @@ export class UpdateCommand {
           removedDeselectedSkillCount += await removeUnselectedSkillDirs(skillsDir, desiredWorkflows);
         }
 
-        // Delete skill directories if delivery is commands-only
-        if (!shouldGenerateSkills) {
+        // Delete skill directories if delivery is commands-only or tool uses commands
+        if (!shouldGenerateSkills || tool.hasCommands) {
           removedSkillCount += await removeSkillDirs(skillsDir);
         }
 
-        // Generate commands if delivery includes commands
-        if (shouldGenerateCommands) {
+        // Generate commands if delivery includes commands and tool supports them
+        if (shouldGenerateCommands && tool.hasCommands) {
           const adapter = CommandAdapterRegistry.get(tool.value);
           if (adapter) {
             const generatedCommands = generateCommands(commandContents, adapter);
