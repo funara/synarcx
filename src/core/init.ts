@@ -42,7 +42,7 @@ import {
   type ToolSkillStatus,
 } from './shared/index.js';
 import { getGlobalConfig, type Delivery, type Profile } from './global-config.js';
-import { getProfileWorkflows } from './profiles.js';
+import { getProfileWorkflows, syncNewCoreWorkflowsToCustomProfile } from './profiles.js';
 import { ALL_WORKFLOWS, WORKFLOW_TO_SKILL_DIR, DEFAULT_SCHEMA } from './shared/workflow-registry.js';
 import { removeSkillDirs, removeCommandFiles } from './shared/artifact-cleanup.js';
 import { getAvailableTools } from './available-tools.js';
@@ -105,6 +105,9 @@ export class InitCommand {
     // Migration check: migrate existing projects to profile system (task 7.3)
     if (extendMode) {
       migrateIfNeeded(projectPath, detectedTools);
+      // Ensure custom-profile users receive any new commands added since their last init
+      // (e.g. syn:review added in 0.3.x). Runs after migration so the profile is settled.
+      syncNewCoreWorkflowsToCustomProfile(getGlobalConfig());
     }
 
     // Show animated welcome screen (interactive mode only)
