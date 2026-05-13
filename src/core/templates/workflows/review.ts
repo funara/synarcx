@@ -79,15 +79,28 @@ export function getSynReviewSkillTemplate(): SkillTemplate {
 
    **If ALL checks pass** (clean):
 
-   Present three options:
+    Present three options:
 
-   | Option | Label | What happens | Next |
-   |---|---|---|---|
-   | A | Archive now | AI moves change to archive/ | Done |
-   | B | Add more work | AI appends new tasks, suggests refinement loop | /syn:clarify → /syn:analyze → /syn:apply |
-   | C | Start a new change | AI suggests creating a fresh change | /syn:propose |
+    | Option | Label | What happens | Next |
+    |---|---|---|---|
+    | A | Archive now | AI moves change to archive/ with auto spec sync | Done (specs merged to main) |
+    | B | Add more work | AI reads proposal+design for scope boundary, checks scope gate | Scope check → update or route |
+    | C | Start a new change | AI suggests creating a fresh change | /syn:propose |
 
-   **For option B (add more work)**: Ask the user what else is needed. If the new work fits within the existing change's scope (same capabilities, same specs, related code), append unchecked tasks to \`tasks.md\` and say: "Run /syn:clarify to refine the new requirements, then /syn:analyze, then /syn:apply." If the new work involves different capabilities, different specs, or unrelated code, tell the user: "This is outside this change's scope. Start a new change with /syn:propose instead."
+   **For option B (add more work)**: Use the scope gate protocol:
+
+   1. Read \`proposal.md\` capabilities section and \`design.md\` goals/non-goals to establish scope boundary
+   2. Ask the user what additional work is needed
+   3. **IN SCOPE** (same capabilities, same concern, no non-goal violation):
+      - Update \`proposal.md\` if scope description needs widening
+      - Update spec with ADDED requirements
+      - Update \`design.md\` if new technical decisions
+      - Append unchecked tasks to \`tasks.md\`
+      - MUST run \`/syn:clarify\` then \`/syn:apply\` — no skipping refinement, no escape hatch for trivial changes
+   4. **OUT OF SCOPE** (new capability, different concern, violates non-goal):
+      - Inform user: "This is outside the current change's scope."
+      - Offer: "Archive current change first?" — YES archives with spec sync, NO leaves active
+      - Route: "Start a new change with \`/syn:propose\`"
 
    **If any checks failed** (dirty):
 
@@ -105,13 +118,31 @@ export function getSynReviewSkillTemplate(): SkillTemplate {
 
    **Note**: /syn:quick bypasses review entirely. Quick is the low-risk fast path.
 
-8. **Archive inline** (when user picks option A)
+ 8. **Archive inline** (when user picks option A, or in Option B out-of-scope with "yes" to archive)
 
-   - Create \`synspec/changes/archive/\` if it doesn't exist
-   - Target name: \`YYYY-MM-DD-<change-name>\`
-   - If target already exists: fail with error, suggest renaming existing archive or using a different approach
-   - Move: \`mv synspec/changes/<name> synspec/changes/archive/YYYY-MM-DD-<name>\`
-   - Confirm: "Archived <change-name> to synspec/changes/archive/YYYY-MM-DD-<name>/"
+    a. **Check for delta specs**: Look for any \`synspec/changes/<name>/specs/<capability>/spec.md\` files. If any exist, proceed with spec sync. If none exist (infrastructure, doc-only change), skip the marker and just do the directory move.
+
+    b. **Write marker** (only if delta specs exist):
+       - Create \`synspec/.pending-sync.json\` if it doesn't exist
+       - Add entry: \`{ change: "YYYY-MM-DD-<change-name>", archivedAt: "<ISO timestamp>", syncedAt: null }\`
+       - Use the full archive directory name (with date prefix) in the \`change\` field
+
+    c. **Move to archive**:
+       - Create \`synspec/changes/archive/\` if missing
+       - Target: \`YYYY-MM-DD-<change-name>\`
+       - If target already exists: fail with error, suggest renaming
+       - Move: \`mv synspec/changes/<name> synspec/changes/archive/YYYY-MM-DD-<name>\`
+
+    d. **Sync specs** (only if delta specs existed):
+       - Call \`findSpecUpdates(archivePath, synspec/specs/)\` to discover delta specs
+       - For each delta: call \`buildUpdatedSpec()\`, write atomically (\`.tmp\` + rename)
+       - Show per-capability progress: "Syncing specs for <capability>: +N added, ~M modified"
+       - Update marker entry with \`syncedAt\` timestamp
+       - On failure: change is already safely archived, show error, marker stays \`null\` for backstop retry
+
+    e. **Confirm**:
+       - "Archived <change-name> to synspec/changes/archive/YYYY-MM-DD-<name>/"
+       - If specs were synced: "Specs synced: <capability>: +N ~M"
 
 ---
 
@@ -158,7 +189,7 @@ This change still has 3 tasks remaining.
 → Use /syn:apply to finish the remaining tasks, then run /syn:review again.
 \`\`\`
 
-## Output (Archived)
+## Output (Archived with Spec Sync)
 
 \`\`\`
 ## Archive Complete
@@ -166,16 +197,32 @@ This change still has 3 tasks remaining.
 **Change:** <change-name>
 **Archived to:** synspec/changes/archive/YYYY-MM-DD-<name>/
 
+Specs synced:
+  review-command: +2 added, ~1 modified
+
 All tasks complete. All checks passed. Change archived.
+\`\`\`
+
+## Output (Archived — No Delta Specs)
+
+\`\`\`
+## Archive Complete
+
+**Change:** <change-name>
+**Archived to:** synspec/changes/archive/YYYY-MM-DD-<name>/
+
+No delta specs to sync. Change archived.
 \`\`\`
 
 ## Guardrails
 - Do NOT run checks if tasks are incomplete — gate at step 3
 - Checks are read-only — do not modify project files during checks
-- Archive move is the only write operation (step 8)
+- Archive happens BEFORE spec sync — if sync fails, change is safely archived
 - Always list ALL findings at once, don't ask "fix one at a time"
 - For failed checks, show only summary counts unless user asks for details
-- If user picks "add more work," evaluate scope before appending tasks
+- If user picks "add more work," use scope gate protocol: read proposal capabilities + design goals/non-goals before acting
+- MUST run clarify after any in-scope expansion — no escape hatch for trivial changes
+- Out-of-scope work: offer to archive first, then route to \`/syn:propose\`
 - Quick bypasses review — do not suggest review to users who used /syn:quick`,
     license: 'MIT',
     compatibility: 'Requires synarcx CLI.',
@@ -239,24 +286,25 @@ export function getSynReviewCommandTemplate(): CommandTemplate {
 
    Then narrative paragraph.
 
-7. **Present the fork**
+ 7. **Present the fork**
 
    **If all checks pass:**
-   - Archive now → AI moves to archive/
-   - Add more work → AI appends tasks (scope-checked), suggests \`/syn:clarify\` → \`/syn:analyze\` → \`/syn:apply\`
+   - Archive now → write marker, move to archive, sync specs, update marker
+   - Add more work → scope gate: read proposal capabilities + design goals/non-goals. If in scope: update artifacts, MUST run \`/syn:clarify\` then \`/syn:apply\`. If out of scope: offer to archive first (with spec sync), route to \`/syn:propose\`.
    - Start a new change → \`/syn:propose\`
 
    **If issues found:**
    - Show each finding with route: \`/syn:apply\`, \`/syn:clarify\`, \`/syn:analyze\`
    - List all findings at once
 
-8. **Archive inline** (when user picks archive)
+ 8. **Archive inline** (when user picks archive)
 
-   - Create \`synspec/changes/archive/\` if missing
-   - Target: \`YYYY-MM-DD-<change-name>\`
-   - Fail if target exists
-   - Move: \`mv synspec/changes/<name> synspec/changes/archive/YYYY-MM-DD-<name>\`
-   - Confirm
+    a. Check for delta specs. If none, skip marker and just move.
+    b. Write \`synspec/.pending-sync.json\` with \`syncedAt: null\` using full \`YYYY-MM-DD-<name>\` as change field
+    c. Move: \`mv synspec/changes/<name> synspec/changes/archive/YYYY-MM-DD-<name>\`
+    d. Sync specs: \`findSpecUpdates(archivePath)\` → \`buildUpdatedSpec()\` → atomic write (\`.tmp\` + rename) → per-capability output
+    e. Update marker with \`syncedAt\` timestamp
+    f. On failure: archive is already moved, marker stays \`null\`, backstop retries on next sync
 
 ---
 
@@ -270,7 +318,7 @@ Lint:      0 errors  ✓
 Typecheck: clean  ✓
 
 All checks pass. What would you like to do?
-[A] Archive now    [B] Add more work    [C] Start a new change
+[A] Archive now (with spec sync)    [B] Add more work (scope-gated)    [C] Start a new change
 \`\`\`
 
 ## Output (Dirty)
@@ -289,7 +337,10 @@ Findings:
 ## Guardrails
 - Gate on task completion — no checks until all tasks are done
 - Summary only for failed checks (not full logs)
-- Scope-check before appending tasks
+- Scope gate for Option B: read proposal capabilities + design goals/non-goals before acting
+- In-scope expansion MUST run clarify then apply — no escape hatch
+- Out-of-scope work: offer archive first, then route to /syn:propose
+- Archive happens before spec sync — if sync fails, change is safely archived
 - Quick bypasses review — do not suggest review after /syn:quick`
   })
 }

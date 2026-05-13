@@ -5,11 +5,47 @@ export function getSynSyncSkillTemplate(): SkillTemplate {
   return {
     name: 'syn-sync',
     description: 'Generate or update synspec/constitution.md with README validation, supporting file scan, guardrail Q&A, and structured constitution generation.',
-    instructions: `## Step 0: SynArcX Version Check (MUST run first)
+    instructions: `## Step 0: Pending Spec Sync Check (runs before version check)
 
-Do NOT read any project files yet. Run this version check first.
+Check for pending spec syncs from recently archived changes. This runs before the version check because it's a local filesystem operation and should not be blocked by network issues.
 
-### 0.1 Read the daily cache
+### 0.1 Read \`synspec/.pending-sync.json\`
+
+If the file doesn't exist, skip this step entirely (no pending syncs).
+
+Expected format:
+\`\`\`json
+{ "pending": [{ "change": "YYYY-MM-DD-<name>", "archivedAt": "<ISO>", "syncedAt": null }] }
+\`\`\`
+
+### 0.2 Process pending entries (FIFO order)
+
+For each entry where \`syncedAt\` is \`null\`:
+- Construct path: \`synspec/changes/archive/<change>/\`
+- Call \`findSpecUpdates(archivePath, synspec/specs/)\` to discover delta specs in the archived change
+- For each delta spec, call \`buildUpdatedSpec()\` to merge into main specs
+- Write rebuilt specs atomically (\`.tmp\` + rename to \`spec.md\`)
+- Show per-change output: "Synced specs from <change>: <capability>: +N ~M"
+- After each change processed, update its \`syncedAt\` field
+- If \`buildUpdatedSpec()\` throws: show error, leave \`syncedAt\` as \`null\` (retry next time)
+
+### 0.3 Clean up marker
+
+After all pending entries are processed:
+- If all entries have \`syncedAt\` set: delete \`synspec/.pending-sync.json\` entirely (clean slate)
+- If some entries failed (\`syncedAt\` still \`null\`): keep the marker, show which changes still need attention, and why
+
+### 0.4 Proceed to version check
+
+Once pending syncs are handled, proceed to Step 1.
+
+---
+
+## Step 1: SynArcX Version Check
+
+Do NOT read any project files yet. Run this version check after pending spec syncs are handled.
+
+### 1.1 Read the daily cache
 
 Read \`synspec/.version-cache.json\`. If \`lastCheck\` matches today's UTC date (YYYY-MM-DD), skip the version check entirely — proceed to "Main Sync Flow" below.
 
@@ -20,15 +56,15 @@ Expected cache format:
 
 If missing or malformed, treat as cache miss and continue.
 
-### 0.2 Fetch latest from npm
+### 1.2 Fetch latest from npm
 
-Run \`npm view synarcx version\`. On failure (no npm, no network, non-zero exit): silently skip to 0.5, write cache with \`latestVersion: null\`.
+Run \`npm view synarcx version\`. On failure (no npm, no network, non-zero exit): silently skip to 1.5, write cache with \`latestVersion: null\`.
 
-### 0.3 Get installed version
+### 1.3 Get installed version
 
-Run \`synarcx --version\`. On failure: silently skip to 0.5.
+Run \`synarcx --version\`. On failure: silently skip to 1.5.
 
-### 0.4 Compare and prompt
+### 1.4 Compare and prompt
 
 Parse both as semver: split on \`.\`, parse each as integer, compare major→minor→patch. If npm version > installed:
 
@@ -39,7 +75,7 @@ Parse both as semver: split on \`.\`, parse each as integer, compare major→min
 
 If versions match, proceed silently.
 
-### 0.5 Write cache
+### 1.5 Write cache
 
 Write \`synspec/.version-cache.json\` with today's UTC date and latest version (or \`null\` on failure). Use \`new Date().toISOString().split('T')[0]\`.
 
@@ -153,23 +189,31 @@ export function getSynSyncCommandTemplate(): CommandTemplate {
     name: 'syn:sync',
     description: 'Generate/update project constitution with README validation, guardrail Q&A, and constraint capture',
     tags: ['workflow', 'sync', 'project'],
-    content: `## Step 0: SynArcX Version Check (MUST run first)
+    content: `## Step 0: Pending Spec Sync Check (runs before version check)
 
-Do NOT read any project files yet. Run this version check first.
+Check \`synspec/.pending-sync.json\`. If file missing, skip (no pending syncs). Expected format: \`{ "pending": [{ "change": "YYYY-MM-DD-<name>", "archivedAt": "<ISO>", "syncedAt": null }] }\`.
 
-### 0.1 Read the daily cache
+For each entry with \`syncedAt: null\`: construct path \`synspec/changes/archive/<change>/\`, call \`findSpecUpdates()\` + \`buildUpdatedSpec()\`, write atomically (\`.tmp\` + rename), update \`syncedAt\`. On error: leave \`syncedAt: null\` for retry.
+
+After all processed: if all entries have \`syncedAt\`, delete marker file. If some still \`null\`, keep marker with error info. Then proceed.
+
+---
+
+## Step 1: SynArcX Version Check
+
+### 1.1 Read the daily cache
 
 Read \`synspec/.version-cache.json\`. If \`lastCheck\` matches today's UTC date (YYYY-MM-DD), skip to "Main Sync Flow" below. Expected format: \`{ "lastCheck": "2026-05-13", "latestVersion": "0.4.0" }\`.
 
-### 0.2 Fetch latest from npm
+### 1.2 Fetch latest from npm
 
-Run \`npm view synarcx version\`. On failure, silently skip to 0.5, write cache with \`latestVersion: null\`.
+Run \`npm view synarcx version\`. On failure, silently skip to 1.5, write cache with \`latestVersion: null\`.
 
-### 0.3 Get installed version
+### 1.3 Get installed version
 
-Run \`synarcx --version\`. On failure, silently skip to 0.5.
+Run \`synarcx --version\`. On failure, silently skip to 1.5.
 
-### 0.4 Compare and prompt
+### 1.4 Compare and prompt
 
 Parse both as semver: split on \`.\`, parse each as integer, compare major→minor→patch. If npm version > installed:
 
@@ -180,7 +224,7 @@ Parse both as semver: split on \`.\`, parse each as integer, compare major→min
 
 If versions match, proceed silently.
 
-### 0.5 Write cache
+### 1.5 Write cache
 
 Write \`synspec/.version-cache.json\` with today's UTC date and latest version (or \`null\` on failure). Use \`new Date().toISOString().split('T')[0]\`.
 

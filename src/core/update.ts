@@ -34,8 +34,8 @@ import {
   type LegacyDetectionResult,
 } from './legacy-cleanup.js';
 import { isInteractive } from '../utils/interactive.js';
-import { getGlobalConfig, saveGlobalConfig, type Delivery, type Profile } from './global-config.js';
-import { getProfileWorkflows } from './profiles.js';
+import { getGlobalConfig, type Delivery, type Profile } from './global-config.js';
+import { getProfileWorkflows, syncNewCoreWorkflowsToCustomProfile } from './profiles.js';
 import { ALL_WORKFLOWS, WORKFLOW_TO_SKILL_DIR } from './shared/workflow-registry.js';
 import {
   removeSkillDirs,
@@ -108,7 +108,7 @@ export class UpdateCommand {
     // 3b. For custom profiles, auto-merge any new ALL_WORKFLOWS entries that aren't
     // listed yet (e.g. 'syn:review' added in a new release). This prevents future
     // versions from silently dropping new commands for existing custom-profile users.
-    this.syncNewCoreWorkflowsToCustomProfile(globalConfig);
+    this.runSyncNewCoreWorkflowsToCustomProfile(globalConfig);
     // Re-read after potential mutation so desiredWorkflows is always current.
     const effectiveConfig = getGlobalConfig();
 
@@ -385,23 +385,21 @@ export class UpdateCommand {
   }
 
   /**
-   * Ensures a 'custom' profile always contains all current ALL_WORKFLOWS entries.
    * Runs on every `synarcx update` so any newly introduced workflow (e.g. syn:review)
    * is automatically added to the saved custom workflow list rather than silently dropped.
-   * No-op for 'core' profile (it derives workflows from ALL_WORKFLOWS directly).
+   * Also prints a dim notice listing what was added.
    */
-  private syncNewCoreWorkflowsToCustomProfile(config: ReturnType<typeof getGlobalConfig>): void {
-    if (config.profile !== 'custom') return
-    const current = config.workflows ?? []
-    const currentSet = new Set(current)
-    const missing = ALL_WORKFLOWS.filter(w => !currentSet.has(w))
-    if (missing.length === 0) return
-
-    config.workflows = [...current, ...missing]
-    saveGlobalConfig(config)
-    const listed = missing.map(w => `/syn:${w}`).join(', ')
-    console.log(chalk.dim(`Auto-added new workflow(s) to your profile: ${listed}`))
-    console.log()
+  private runSyncNewCoreWorkflowsToCustomProfile(config: ReturnType<typeof getGlobalConfig>): void {
+    const before = config.workflows ? [...config.workflows] : null
+    syncNewCoreWorkflowsToCustomProfile(config)
+    const after = config.workflows ?? []
+    const beforeSet = new Set(before ?? [])
+    const added = after.filter(w => !beforeSet.has(w))
+    if (added.length > 0) {
+      const listed = added.map(w => `/syn:${w}`).join(', ')
+      console.log(chalk.dim(`Auto-added new workflow(s) to your profile: ${listed}`))
+      console.log()
+    }
   }
 
   /**

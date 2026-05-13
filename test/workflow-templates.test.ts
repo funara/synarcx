@@ -150,8 +150,8 @@ describe('workflow next-step suggestions', () => {
 
 describe('sync version check', () => {
   describe('sync skill template contains version check', () => {
-    it('instructions mention Step 0 version check header', () => {
-      expect(getSynSyncSkillTemplate().instructions).toContain('Step 0: SynArcX Version Check')
+    it('instructions mention Step 1 version check header', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('Step 1: SynArcX Version Check')
     })
     it('instructions mention .version-cache.json', () => {
       expect(getSynSyncSkillTemplate().instructions).toContain('.version-cache.json')
@@ -174,8 +174,8 @@ describe('sync version check', () => {
   })
 
   describe('sync command template contains version check', () => {
-    it('content mentions Step 0 version check header', () => {
-      expect(getSynSyncCommandTemplate().content).toContain('Step 0: SynArcX Version Check')
+    it('content mentions Step 1 version check header', () => {
+      expect(getSynSyncCommandTemplate().content).toContain('Step 1: SynArcX Version Check')
     })
     it('content mentions .version-cache.json', () => {
       expect(getSynSyncCommandTemplate().content).toContain('.version-cache.json')

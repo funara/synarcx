@@ -92,7 +92,7 @@ Then in your AI coding tool:
 3. `/syn:propose "my-feature"` — create proposal, specs, design, and tasks in one step
 4. `/syn:clarify` — sharpen artifacts with targeted questions + auto consistency check
 5. `/syn:apply` — implement the tasks
-6. `/syn:review` — verify implementation, run sanity checks, and archive when clean
+6. `/syn:review` — verify implementation, run sanity checks, then choose: archive (auto spec sync), add more work (scope-gated), or start a new change
 
 For specific cases, use these instead of `/syn:explore`:
 
@@ -126,22 +126,32 @@ Session 1  ──►  constitution.md  ──►  Session 2  ──►  constitu
 **The workflow:**
 
 ```
-sync ─────────────────────────────────────► constitution
-
-explore  ──┐
-debug    ──┤
-           ├──► propose ──► clarify ──► apply ──► review
-           │             └── (auto-analyze) ──┘
-refactor ──┘
-
-quick ───────────────────────────────────────────► apply
+quick ─────────────────────────────────────┐
+                                           │
+explore  ──┐                               │
+debug    ──┤                               ▼
+           ├───► propose ──► clarify ──► apply ──► review
+           │        ▲           ▲                     │
+refactor ──┘        │           │                     │
+                    │           │                     │
+                    │           │     ┌───────────────┼───────────────┐
+                    │           │     ▼               ▼               ▼
+                    │        add more work        new change       archive
+                    │                                 │               │
+                    └─────────────────────────────────┘               ▼
+sync ──────────────────────────────────────────────────────────► constitution
 ```
 
 Each step suggests the next — you decide when to advance. Works in Claude Code, Cursor, Cline, and any AI coding tool that supports slash commands.
 
-- `sync` generates the `constitution.md` — run once, re-run when the project shifts. Also runs a daily version check: if a newer synarcx is available, prompts to auto-update inline.
+- `sync` generates the `constitution.md` — run once, re-run when the project shifts. Also runs a daily version check (prompts to auto-update) and checks for pending spec syncs from recently archived changes.
 - `explore`, `debug`, and `refactor` are entry points that hand off to `propose`
 - `quick` skips the pipeline for small, low-risk changes
+- Run `synarcx update` in your terminal to refresh all skill and command files after installing a new version
+- `review` is a three-way fork:
+  - **Archive now**: auto-syncs delta specs to main spec via `buildUpdatedSpec()`, writes `.pending-sync.json` marker, moves to archive. If spec sync fails, the change is already safely in archive; retry on next sync run.
+  - **Add more work**: scope gate reads proposal capabilities + design goals/non-goals. In-scope → update artifacts, MUST `/syn:clarify` then `/syn:apply` then `/syn:review` again (loop). Out-of-scope → offer archive then route to `/syn:propose`.
+  - **Start a new change**: routes to `/syn:propose`.
 
 Each change gets its own folder under `synspec/changes/` with:
 
@@ -183,35 +193,35 @@ A typical `constitution.md` includes:
 
 Used inside your AI coding tool (Claude Code, Cursor, Cline, etc.):
 
-| Command           | Description                                                              |
-| ----------------- | ------------------------------------------------------------------------ |
-| `/syn:sync`     | Scan project, run guardrail Q&A, generate/update `constitution.md`. Auto-checks for synarcx updates once daily. |
-| `/syn:explore`  | Think through ideas, investigate problems, clarify requirements          |
-| `/syn:debug`    | Diagnose a known error (3-phase analysis), then prompts `/syn:propose` |
-| `/syn:refactor` | Map current vs target structure, then prompts `/syn:propose`           |
-| `/syn:quick`    | Fast-path for small low-risk changes — inline preview, confirm, apply   |
-| `/syn:propose`  | Create a new change with proposal, specs, design, and tasks              |
-| `/syn:clarify`  | Targeted Q&A (adaptive limit) + auto consistency checks in one command   |
-| `/syn:analyze`  | Standalone cross-artifact consistency check (auto-run by clarify)        |
-| `/syn:apply`    | Implement tasks from a change's task list                                |
-| `/syn:review`   | Verify implementation, run sanity checks, and archive when clean         |
+| Command           | Description                                                                                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/syn:sync`     | Scan project, run guardrail Q&A, generate/update `constitution.md`. Checks pending spec syncs from archived changes first. Auto-checks for synarcx updates once daily. |
+| `/syn:explore`  | Think through ideas, investigate problems, clarify requirements                                                                                                          |
+| `/syn:debug`    | Diagnose a known error (3-phase analysis), then prompts `/syn:propose`                                                                                                 |
+| `/syn:refactor` | Map current vs target structure, then prompts `/syn:propose`                                                                                                           |
+| `/syn:quick`    | Fast-path for small low-risk changes — inline preview, confirm, apply                                                                                                   |
+| `/syn:propose`  | Create a new change with proposal, specs, design, and tasks                                                                                                              |
+| `/syn:clarify`  | Targeted Q&A (adaptive limit) + auto consistency checks in one command                                                                                                   |
+| `/syn:analyze`  | Standalone cross-artifact consistency check (auto-run by clarify)                                                                                                        |
+| `/syn:apply`    | Implement tasks from a change's task list                                                                                                                                |
+| `/syn:review`   | Verify implementation, run sanity checks, and three-way fork: archive (auto spec sync), add more work (scope gate), or start new change                                  |
 
 ### CLI Commands
 
 Used in your terminal:
 
-| Command             | Description                                             |
-| ------------------- | ------------------------------------------------------- |
-| `synarcx init`    | Set up SynArcX workflow structure in your repository    |
-| `synarcx update`  | Refresh skill and command files for all configured tools |
-| `synarcx sync`    | Regenerate `constitution.md`                          |
-| `synarcx explore` | Open explore session                                    |
-| `synarcx propose` | Create a structured change proposal                     |
-| `synarcx clarify` | Targeted Q&A (adaptive limit) + auto consistency checks |
-| `synarcx analyze` | Cross-artifact consistency check (standalone)           |
-| `synarcx apply`   | Execute implementation tasks                            |
+| Command             | Description                                                  |
+| ------------------- | ------------------------------------------------------------ |
+| `synarcx init`    | Set up SynArcX workflow structure in your repository         |
+| `synarcx update`  | Refresh skill and command files for all configured tools     |
+| `synarcx sync`    | Regenerate `constitution.md`                               |
+| `synarcx explore` | Open explore session                                         |
+| `synarcx propose` | Create a structured change proposal                          |
+| `synarcx clarify` | Targeted Q&A (adaptive limit) + auto consistency checks      |
+| `synarcx analyze` | Cross-artifact consistency check (standalone)                |
+| `synarcx apply`   | Execute implementation tasks                                 |
 | `synarcx review`  | Verify implementation, run sanity checks, archive when clean |
-| `synarcx quick`   | Fast-path execution for small changes                   |
+| `synarcx quick`   | Fast-path execution for small changes                        |
 
 ---
 
@@ -266,7 +276,7 @@ SynArcX is evolving toward an architecture-aware workflow system for long-runnin
 
 ## Status
 
-**v0.3.x** — `syn:review` added as the terminal quality gate (verify implementation, run sanity checks, three-way fork: archive, add work, or start fresh); seamless upgrade from v0.2.x (auto-migrates to `core` profile so new commands appear without any manual steps); clarify+analyze merged, adaptive Q&A limit, quick command, debug/refactor guardrail alignment
+**v0.3.x** — `syn:review` three-way fork (archive with auto spec sync, scope-gated add-more-work, or start new change); `syn:sync` extended with pending spec sync backstop for recently archived changes; archive writes `.pending-sync.json` marker consumed by sync; atomic spec writes prevent half-written corruption; retroactive fix for broken main spec format; seamless upgrade from v0.2.x (auto-migrates to `core` profile)
 
 Active development roadmap:
 
