@@ -542,8 +542,8 @@ export class InitCommand {
           removedSkillCount += await removeSkillDirs(skillsDir);
         }
 
-        // Generate commands if delivery includes commands
-        if (shouldGenerateCommands) {
+        // Generate commands if delivery includes commands and tool supports them
+        if (shouldGenerateCommands && hasCommands) {
           const adapter = CommandAdapterRegistry.get(tool.value);
           if (adapter) {
             const generatedCommands = generateCommands(commandContents, adapter);

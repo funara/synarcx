@@ -21,6 +21,18 @@ export async function removeSkillDirs(skillsDir: string): Promise<number> {
     }
   }
 
+  // Remove empty parent skills directory
+  try {
+    if (fs.existsSync(skillsDir)) {
+      const remaining = await fs.promises.readdir(skillsDir)
+      if (remaining.length === 0) {
+        await fs.promises.rmdir(skillsDir)
+      }
+    }
+  } catch {
+    // Ignore errors
+  }
+
   return removed
 }
 
