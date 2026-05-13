@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getSynSyncSkillTemplate } from '../src/core/templates/workflows/sync.js'
+import { getSynSyncSkillTemplate, getSynSyncCommandTemplate } from '../src/core/templates/workflows/sync.js'
 import { getSynClarifySkillTemplate, getSynClarifyCommandTemplate } from '../src/core/templates/workflows/clarify.js'
 import { getSynAnalyzeSkillTemplate, getSynAnalyzeCommandTemplate } from '../src/core/templates/workflows/analyze.js'
 import { getSynDebugSkillTemplate, getSynDebugCommandTemplate } from '../src/core/templates/workflows/debug.js'
@@ -111,12 +111,12 @@ describe('workflow next-step suggestions', () => {
     })
   })
 
-  describe('clarify suggests analyze', () => {
-    it('skill instructions mention /syn:analyze', () => {
-      expect(getSynClarifySkillTemplate().instructions).toContain('/syn:analyze')
+  describe('clarify suggests apply', () => {
+    it('skill instructions mention /syn:apply', () => {
+      expect(getSynClarifySkillTemplate().instructions).toContain('/syn:apply')
     })
-    it('command content mentions /syn:analyze', () => {
-      expect(getSynClarifyCommandTemplate().content).toContain('/syn:analyze')
+    it('command content mentions /syn:apply', () => {
+      expect(getSynClarifyCommandTemplate().content).toContain('/syn:apply')
     })
   })
 
@@ -144,6 +144,53 @@ describe('workflow next-step suggestions', () => {
     })
     it('command content mentions /syn:propose', () => {
       expect(getSynDebugCommandTemplate().content).toContain('/syn:propose')
+    })
+  })
+})
+
+describe('sync version check', () => {
+  describe('sync skill template contains version check', () => {
+    it('instructions mention Step 0 version check header', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('Step 0: SynArcX Version Check')
+    })
+    it('instructions mention .version-cache.json', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('.version-cache.json')
+    })
+    it('instructions mention AskUserQuestion', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('AskUserQuestion')
+    })
+    it('instructions mention npm install -g synarcx@latest', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('npm install -g synarcx@latest')
+    })
+    it('instructions mention synarcx update (post-update suggestion)', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('synarcx update')
+    })
+    it('instructions mention segment comparison', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('.')
+    })
+    it('instructions mention latestVersion: null (cache-on-failure)', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('latestVersion: null')
+    })
+  })
+
+  describe('sync command template contains version check', () => {
+    it('content mentions Step 0 version check header', () => {
+      expect(getSynSyncCommandTemplate().content).toContain('Step 0: SynArcX Version Check')
+    })
+    it('content mentions .version-cache.json', () => {
+      expect(getSynSyncCommandTemplate().content).toContain('.version-cache.json')
+    })
+    it('content mentions AskUserQuestion', () => {
+      expect(getSynSyncCommandTemplate().content).toContain('AskUserQuestion')
+    })
+    it('content mentions npm install -g synarcx@latest', () => {
+      expect(getSynSyncCommandTemplate().content).toContain('npm install -g synarcx@latest')
+    })
+    it('content mentions synarcx update (post-update suggestion)', () => {
+      expect(getSynSyncCommandTemplate().content).toContain('synarcx update')
+    })
+    it('content mentions latestVersion: null (cache-on-failure)', () => {
+      expect(getSynSyncCommandTemplate().content).toContain('latestVersion: null')
     })
   })
 })

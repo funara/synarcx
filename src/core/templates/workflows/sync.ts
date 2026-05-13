@@ -5,7 +5,49 @@ export function getSynSyncSkillTemplate(): SkillTemplate {
   return {
     name: 'syn-sync',
     description: 'Generate or update synspec/constitution.md with README validation, supporting file scan, guardrail Q&A, and structured constitution generation.',
-    instructions: `Generate or update the project constitution — a living document in \`synspec/constitution.md\` that captures validated project context.
+    instructions: `## Step 0: SynArcX Version Check (MUST run first)
+
+Do NOT read any project files yet. Run this version check first.
+
+### 0.1 Read the daily cache
+
+Read \`synspec/.version-cache.json\`. If \`lastCheck\` matches today's UTC date (YYYY-MM-DD), skip the version check entirely — proceed to "Main Sync Flow" below.
+
+Expected cache format:
+\`\`\`json
+{ "lastCheck": "2026-05-13", "latestVersion": "0.4.0" }
+\`\`\`
+
+If missing or malformed, treat as cache miss and continue.
+
+### 0.2 Fetch latest from npm
+
+Run \`npm view synarcx version\`. On failure (no npm, no network, non-zero exit): silently skip to 0.5, write cache with \`latestVersion: null\`.
+
+### 0.3 Get installed version
+
+Run \`synarcx --version\`. On failure: silently skip to 0.5.
+
+### 0.4 Compare and prompt
+
+Parse both as semver: split on \`.\`, parse each as integer, compare major→minor→patch. If npm version > installed:
+
+1. Print update banner.
+2. Use AskUserQuestion tool: "Update now?" with \`["Yes", "No"]\`.
+3. **Yes**: Run \`npm install -g synarcx@latest\`. On success: print "✓ SynArcX updated" + "Run \`synarcx update\` to refresh skill files." On failure: print error + manual command.
+4. **No**: Print manual command.
+
+If versions match, proceed silently.
+
+### 0.5 Write cache
+
+Write \`synspec/.version-cache.json\` with today's UTC date and latest version (or \`null\` on failure). Use \`new Date().toISOString().split('T')[0]\`.
+
+---
+
+## Main Sync Flow
+
+Generate or update the project constitution — a living document in \`synspec/constitution.md\` that captures validated project context.
 
 **Input**: The user can specify a focus area, or just run the command to proceed through the validation flow.
 
@@ -111,7 +153,42 @@ export function getSynSyncCommandTemplate(): CommandTemplate {
     name: 'syn:sync',
     description: 'Generate/update project constitution with README validation, guardrail Q&A, and constraint capture',
     tags: ['workflow', 'sync', 'project'],
-    content: `Generate or update the project constitution — a living document in \`synspec/constitution.md\` that captures validated project context.
+    content: `## Step 0: SynArcX Version Check (MUST run first)
+
+Do NOT read any project files yet. Run this version check first.
+
+### 0.1 Read the daily cache
+
+Read \`synspec/.version-cache.json\`. If \`lastCheck\` matches today's UTC date (YYYY-MM-DD), skip to "Main Sync Flow" below. Expected format: \`{ "lastCheck": "2026-05-13", "latestVersion": "0.4.0" }\`.
+
+### 0.2 Fetch latest from npm
+
+Run \`npm view synarcx version\`. On failure, silently skip to 0.5, write cache with \`latestVersion: null\`.
+
+### 0.3 Get installed version
+
+Run \`synarcx --version\`. On failure, silently skip to 0.5.
+
+### 0.4 Compare and prompt
+
+Parse both as semver: split on \`.\`, parse each as integer, compare major→minor→patch. If npm version > installed:
+
+1. Print update banner.
+2. Use AskUserQuestion tool: "Update now?" with \`["Yes", "No"]\`.
+3. **Yes**: Run \`npm install -g synarcx@latest\`. On success: print success + "Run \`synarcx update\` to refresh skill files." On failure: print error + manual command.
+4. **No**: Print manual command.
+
+If versions match, proceed silently.
+
+### 0.5 Write cache
+
+Write \`synspec/.version-cache.json\` with today's UTC date and latest version (or \`null\` on failure). Use \`new Date().toISOString().split('T')[0]\`.
+
+---
+
+## Main Sync Flow
+
+Generate or update the project constitution — a living document in \`synspec/constitution.md\` that captures validated project context.
 
 **Input**: The user can specify a focus area, or just run the command to proceed through the validation flow.
 

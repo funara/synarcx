@@ -3,7 +3,6 @@ export const DEFAULT_SCHEMA = 'synarcx'
 export const WORKFLOWS = [
   { id: 'explore', skillDir: 'syn-explore' },
   { id: 'apply', skillDir: 'syn-apply' },
-  { id: 'archive', skillDir: 'syn-archive' },
   { id: 'propose', skillDir: 'syn-propose' },
   { id: 'sync', skillDir: 'syn-sync' },
   { id: 'clarify', skillDir: 'syn-clarify' },
@@ -11,6 +10,7 @@ export const WORKFLOWS = [
   { id: 'debug', skillDir: 'syn-debug' },
   { id: 'refactor', skillDir: 'syn-refactor' },
   { id: 'quick', skillDir: 'syn-quick' },
+  { id: 'review', skillDir: 'syn-review' },
 ] as const
 
 export const ALL_WORKFLOWS: readonly string[] = WORKFLOWS.map(w => w.id)

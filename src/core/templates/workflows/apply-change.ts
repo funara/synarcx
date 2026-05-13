@@ -48,7 +48,7 @@ export function getSynApplySkillTemplate(): SkillTemplate {
 
    **Handle states:**
    - If \`state: "blocked"\` (missing artifacts): show message, suggest using syn:apply
-   - If \`state: "all_done"\`: congratulate, suggest archive
+   - If \`state: "all_done"\`: congratulate, suggest \`/syn:review\`
    - Otherwise: proceed to implementation
 
 4. **Read context files**
@@ -86,7 +86,7 @@ export function getSynApplySkillTemplate(): SkillTemplate {
    Display:
    - Tasks completed this session
    - Overall progress: "N/M tasks complete"
-   - If all done: suggest archive
+   - If all done: suggest \`/syn:review\`
    - If paused: explain why and wait for guidance
 
 **Output During Implementation**
@@ -117,7 +117,7 @@ Working on task 4/7: <task description>
 - [x] Task 2
 ...
 
-All tasks complete! Ready to archive this change.
+All tasks complete! Run \`/syn:review\` to verify the implementation.
 \`\`\`
 
 **Output On Pause (Issue Encountered)**
@@ -204,7 +204,7 @@ export function getSynApplyCommandTemplate(): CommandTemplate {
 
    **Handle states:**
    - If \`state: "blocked"\` (missing artifacts): show message, suggest using \`/syn:apply\`
-   - If \`state: "all_done"\`: congratulate, suggest archive
+   - If \`state: "all_done"\`: congratulate, suggest \`/syn:review\`
    - Otherwise: proceed to implementation
 
 4. **Read context files**
@@ -242,7 +242,7 @@ export function getSynApplyCommandTemplate(): CommandTemplate {
    Display:
    - Tasks completed this session
    - Overall progress: "N/M tasks complete"
-   - If all done: suggest archive
+   - If all done: suggest \`/syn:review\`
    - If paused: explain why and wait for guidance
 
 **Output During Implementation**
@@ -273,7 +273,7 @@ Working on task 4/7: <task description>
 - [x] Task 2
 ...
 
-All tasks complete! You can archive this change with \`/syn:archive\`.
+All tasks complete! Run \`/syn:review\` to verify the implementation.
 \`\`\`
 
 **Output On Pause (Issue Encountered)**
