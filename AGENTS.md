@@ -4,43 +4,50 @@ This file helps AI agents understand the SynArcX project conventions.
 
 ## Project Overview
 
-SynArcX is a spec-driven development workflow with sync, explore, propose, clarify, analyze, apply, debug, refactor, quick, and archive commands. Install globally via `npm install -g synarcx` or `pnpm add -g synarcx`.
+SynArcX is a spec-driven development workflow with sync, explore, propose, clarify, analyze, apply, review, debug, refactor, and quick commands. Install globally via `npm install -g synarcx` or `pnpm add -g synarcx`.
 
 ## Workflow
 
 The intended user flow is:
 
 ```
-sync ─────────────────────────────────────────► constitution
+sync ─────────────────────────────────────► constitution
 
 explore  ──┐
 debug    ──┤
-           ├──► propose ──► clarify ──► analyze ──► apply ──► archive
+           ├──► propose ──► clarify ──► apply ──► review
+           │             └── (auto-analyze) ──┘
 refactor ──┘
 
-quick ──────────────────────────────────────────────────► apply
+quick ───────────────────────────────────────────► apply
 ```
 
 - `syn:explore`, `syn:debug`, and `syn:refactor` are entry points — all hand off to `syn:propose`
 - `syn:debug` investigates a known error (3-phase: root cause → pattern → hypothesis), produces a diagnosis, then suggests `syn:propose` with the findings. It does NOT write to `tasks.md` directly.
 - `syn:refactor` investigates structural changes (current shape vs target shape) with a behavior-contract gate during analyze, then hands off to `syn:propose`
 - `syn:quick` is a fast-path for small, low-risk changes — no artifacts created, inline preview with confirmation, then applies directly
-- `syn:clarify` and `syn:analyze` refine artifacts before implementation — they are not optional gates but recommended steps
+- `syn:clarify` runs targeted Q&A (adaptive limit, up to 5 then extends for critical unknowns) then auto-analyzes consistency — all in one command
+- `syn:analyze` is auto-run by clarify, but also available standalone for manual use
+- `syn:review` is the terminal quality gate — verifies tasks are complete, runs sanity checks (test/lint/typecheck), and presents a three-way fork (archive, add more work, or start a new change). Archive is handled inline by review.
+- `syn:sync` also runs a daily version check (first run of each UTC day): if a newer synarcx is available on npm, it prompts the user to auto-update inline. Results cached in `synspec/.version-cache.json`. Silent when up-to-date, no cache miss penalty.
 - Each command ends by suggesting the next step; the user decides when to advance
 
 ## Schema
 
-The project uses the `synarcx` schema at `schemas/synarcx/`. The artifact graph is: proposal → specs → design → tasks. Commands `syn:clarify` and `syn:analyze` operate on existing artifacts in place.
+The project uses the `synarcx` schema at `schemas/synarcx/`. The artifact graph is: proposal → specs → design → tasks. `syn:clarify` operates on existing artifacts in place (Q&A + auto-analyze). `syn:analyze` is available standalone.
 
 Workflow templates live in `src/core/templates/workflows/`. Each template exports two functions:
+
 - `getSyn<Name>SkillTemplate()` — returns a SkillTemplate used for agent skill files
 - `getSyn<Name>CommandTemplate()` — returns a CommandTemplate used for slash command files
 
 New templates must be registered in:
+
 1. `src/core/templates/skill-templates.ts` — add export
-2. `src/core/shared/skill-generation.ts` — add to getSkillTemplates() and getCommandTemplates()
-3. `src/core/shared/tool-detection.ts` — add to SKILL_NAMES and COMMAND_IDS
-4. `src/core/profiles.ts` — add to ALL_WORKFLOWS
+2. `src/core/shared/workflow-registry.ts` — add to WORKFLOWS array
+3. `src/core/shared/skill-generation.ts` — add to getSkillTemplates() and getCommandTemplates()
+
+(ALL_WORKFLOWS, CORE_WORKFLOWS, SKILL_NAMES, and COMMAND_IDS in tool-detection.ts are derived from WORKFLOWS automatically.)
 
 ## Slash Commands
 

@@ -7,7 +7,6 @@
 import {
   getSynExploreSkillTemplate,
   getSynApplySkillTemplate,
-  getSynArchiveSkillTemplate,
   getSynProposeSkillTemplate,
   getSynSyncSkillTemplate,
   getSynClarifySkillTemplate,
@@ -15,9 +14,9 @@ import {
   getSynDebugSkillTemplate,
   getSynRefactorSkillTemplate,
   getSynQuickSkillTemplate,
+  getSynReviewSkillTemplate,
   getSynExploreCommandTemplate,
   getSynApplyCommandTemplate,
-  getSynArchiveCommandTemplate,
   getSynProposeCommandTemplate,
   getSynSyncCommandTemplate,
   getSynClarifyCommandTemplate,
@@ -25,6 +24,7 @@ import {
   getSynDebugCommandTemplate,
   getSynRefactorCommandTemplate,
   getSynQuickCommandTemplate,
+  getSynReviewCommandTemplate,
   type SkillTemplate,
 } from '../templates/skill-templates.js';
 import type { CommandContent } from '../command-generation/index.js';
@@ -55,7 +55,6 @@ export function getSkillTemplates(workflowFilter?: readonly string[]): SkillTemp
   const all: SkillTemplateEntry[] = [
     { template: getSynExploreSkillTemplate(), dirName: 'syn-explore', workflowId: 'explore' },
     { template: getSynApplySkillTemplate(), dirName: 'syn-apply', workflowId: 'apply' },
-    { template: getSynArchiveSkillTemplate(), dirName: 'syn-archive', workflowId: 'archive' },
     { template: getSynProposeSkillTemplate(), dirName: 'syn-propose', workflowId: 'propose' },
     { template: getSynSyncSkillTemplate(), dirName: 'syn-sync', workflowId: 'sync' },
     { template: getSynClarifySkillTemplate(), dirName: 'syn-clarify', workflowId: 'clarify' },
@@ -63,6 +62,7 @@ export function getSkillTemplates(workflowFilter?: readonly string[]): SkillTemp
     { template: getSynDebugSkillTemplate(), dirName: 'syn-debug', workflowId: 'debug' },
     { template: getSynRefactorSkillTemplate(), dirName: 'syn-refactor', workflowId: 'refactor' },
     { template: getSynQuickSkillTemplate(), dirName: 'syn-quick', workflowId: 'quick' },
+    { template: getSynReviewSkillTemplate(), dirName: 'syn-review', workflowId: 'review' },
   ];
 
   if (!workflowFilter) return all;
@@ -80,7 +80,6 @@ export function getCommandTemplates(workflowFilter?: readonly string[]): Command
   const all: CommandTemplateEntry[] = [
     { template: getSynExploreCommandTemplate(), id: 'explore' },
     { template: getSynApplyCommandTemplate(), id: 'apply' },
-    { template: getSynArchiveCommandTemplate(), id: 'archive' },
     { template: getSynProposeCommandTemplate(), id: 'propose' },
     { template: getSynSyncCommandTemplate(), id: 'sync' },
     { template: getSynClarifyCommandTemplate(), id: 'clarify' },
@@ -88,6 +87,7 @@ export function getCommandTemplates(workflowFilter?: readonly string[]): Command
     { template: getSynDebugCommandTemplate(), id: 'debug' },
     { template: getSynRefactorCommandTemplate(), id: 'refactor' },
     { template: getSynQuickCommandTemplate(), id: 'quick' },
+    { template: getSynReviewCommandTemplate(), id: 'review' },
   ];
 
   if (!workflowFilter) return all;

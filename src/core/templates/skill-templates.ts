@@ -16,3 +16,4 @@ export { getSynAnalyzeSkillTemplate, getSynAnalyzeCommandTemplate } from './work
 export { getSynDebugSkillTemplate, getSynDebugCommandTemplate } from './workflows/debug.js';
 export { getSynRefactorSkillTemplate, getSynRefactorCommandTemplate } from './workflows/refactor.js';
 export { getSynQuickSkillTemplate, getSynQuickCommandTemplate } from './workflows/quick.js';
+export { getSynReviewSkillTemplate, getSynReviewCommandTemplate } from './workflows/review.js';
