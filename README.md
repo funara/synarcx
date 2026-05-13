@@ -28,7 +28,7 @@ SynArcX makes your engineering decisions durable. The `constitution.md` is alway
 
 ## Why Not Just Use Another Spec Format?
 
-Spec formats describe *what* to build. 
+Spec formats describe *what* to build.
 
 SynArcX structures *how you get there*  from exploration to proposal to implementation, and helps keep AI-generated changes aligned with the evolving codebase at every stage, not just at planning time.
 
@@ -90,10 +90,9 @@ Then in your AI coding tool:
 1. `/syn:sync` — scan the project and generate the `constitution.md` (persistent project memory)
 2. `/syn:explore "your idea"` — think through the problem with your AI
 3. `/syn:propose "my-feature"` — create proposal, specs, design, and tasks in one step
-4. `/syn:clarify` — sharpen artifacts with targeted questions
-5. `/syn:analyze` — cross-artifact consistency check
-6. `/syn:apply` — implement the tasks
-7. `/syn:archive` — archive when done
+4. `/syn:clarify` — sharpen artifacts with targeted questions + auto consistency check
+5. `/syn:apply` — implement the tasks
+6. `/syn:review` — verify implementation, run sanity checks, and archive when clean
 
 For specific cases, use these instead of `/syn:explore`:
 
@@ -118,7 +117,7 @@ Session 1  ──►  Session 2  ──►  Session 3  ──►  Session N
 ```
 Session 1  ──►  constitution.md  ──►  Session 2  ──►  constitution.md  ──►  Session N
 ✓ correct          (updated)          ✓ correct         (updated)          ✓ correct
-      
+  
  		specs · architecture · intent preserved across every reset
 ```
 
@@ -127,19 +126,20 @@ Session 1  ──►  constitution.md  ──►  Session 2  ──►  constitu
 **The workflow:**
 
 ```
-sync ──────────────────────────────────────────────────► constitution
+sync ─────────────────────────────────────► constitution
 
 explore  ──┐
 debug    ──┤
-           ├──► propose ──► clarify ──► analyze ──► apply ──► archive
+           ├──► propose ──► clarify ──► apply ──► review
+           │             └── (auto-analyze) ──┘
 refactor ──┘
 
-quick ────────────────────────────────────────────────────────► apply
+quick ───────────────────────────────────────────► apply
 ```
 
 Each step suggests the next — you decide when to advance. Works in Claude Code, Cursor, Cline, and any AI coding tool that supports slash commands.
 
-- `sync` generates the `constitution.md` — run once, re-run when the project shifts
+- `sync` generates the `constitution.md` — run once, re-run when the project shifts. Also runs a daily version check: if a newer synarcx is available, prompts to auto-update inline.
 - `explore`, `debug`, and `refactor` are entry points that hand off to `propose`
 - `quick` skips the pipeline for small, low-risk changes
 
@@ -185,31 +185,31 @@ Used inside your AI coding tool (Claude Code, Cursor, Cline, etc.):
 
 | Command           | Description                                                              |
 | ----------------- | ------------------------------------------------------------------------ |
-| `/syn:sync`     | Scan project, run guardrail Q&A, generate/update `constitution.md`     |
+| `/syn:sync`     | Scan project, run guardrail Q&A, generate/update `constitution.md`. Auto-checks for synarcx updates once daily. |
 | `/syn:explore`  | Think through ideas, investigate problems, clarify requirements          |
 | `/syn:debug`    | Diagnose a known error (3-phase analysis), then prompts `/syn:propose` |
 | `/syn:refactor` | Map current vs target structure, then prompts `/syn:propose`           |
 | `/syn:quick`    | Fast-path for small low-risk changes — inline preview, confirm, apply   |
 | `/syn:propose`  | Create a new change with proposal, specs, design, and tasks              |
-| `/syn:clarify`  | Ask up to 5 targeted questions to sharpen artifacts                      |
-| `/syn:analyze`  | Cross-artifact consistency check across all change artifacts             |
+| `/syn:clarify`  | Targeted Q&A (adaptive limit) + auto consistency checks in one command   |
+| `/syn:analyze`  | Standalone cross-artifact consistency check (auto-run by clarify)        |
 | `/syn:apply`    | Implement tasks from a change's task list                                |
-| `/syn:archive`  | Archive a completed change and sync specs                                |
+| `/syn:review`   | Verify implementation, run sanity checks, and archive when clean         |
 
 ### CLI Commands
 
 Used in your terminal:
 
-| Command             | Description                                          |
-| ------------------- | ---------------------------------------------------- |
-| `synarcx init`    | Set up SynArcX workflow structure in your repository |
-| `synarcx sync`    | Regenerate `constitution.md`                       |
-| `synarcx explore` | Open explore session                                 |
-| `synarcx propose` | Create a structured change proposal                  |
-| `synarcx clarify` | Refine requirements into explicit specifications     |
-| `synarcx analyze` | Evaluate architecture impact and tradeoffs           |
-| `synarcx apply`   | Execute implementation tasks                         |
-| `synarcx quick`   | Fast-path execution for small changes                |
+| Command             | Description                                             |
+| ------------------- | ------------------------------------------------------- |
+| `synarcx init`    | Set up SynArcX workflow structure in your repository    |
+| `synarcx sync`    | Regenerate `constitution.md`                          |
+| `synarcx explore` | Open explore session                                    |
+| `synarcx propose` | Create a structured change proposal                     |
+| `synarcx clarify` | Targeted Q&A (adaptive limit) + auto consistency checks |
+| `synarcx analyze` | Cross-artifact consistency check (standalone)           |
+| `synarcx apply`   | Execute implementation tasks                            |
+| `synarcx quick`   | Fast-path execution for small changes                   |
 
 ---
 
@@ -264,7 +264,7 @@ SynArcX is evolving toward an architecture-aware workflow system for long-runnin
 
 ## Status
 
-**v0.2.x** — core workflow stable (init, sync, propose, clarify, analyze, apply, archive, quick)
+**v0.3.x** — clarify+analyze merged, adaptive Q&A limit, quick command added
 
 Active development roadmap:
 
