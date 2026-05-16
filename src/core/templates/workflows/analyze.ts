@@ -5,7 +5,16 @@ export function getSynAnalyzeSkillTemplate(): SkillTemplate {
   return {
     name: 'syn-analyze',
     description: 'Cross-artifact consistency check across proposal, specs, design, and tasks. Edits in place to fix inconsistencies.',
-    instructions: `Run a cross-artifact consistency check for a change. Edits artifacts in place to fix issues found.
+    instructions: `## Step 0: Constitution Gate
+
+Read \`synspec/constitution.md\`.
+- If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first — analyze uses [INV] and [BND] to check artifact compliance."
+- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If valid → load [INV] and [BND] for checks 6 and 7 below.
+
+---
+
+Run a cross-artifact consistency check for a change. Edits artifacts in place to fix issues found.
 
 ---
 
@@ -29,11 +38,14 @@ export function getSynAnalyzeSkillTemplate(): SkillTemplate {
    c. **Completeness** — no missing sections or dangling references
    d. **Conflict detection** — contradictory statements between artifacts
    e. **Traceability** — every task maps to a spec requirement
+   f. **Constitution compliance** — design decisions must not violate any [INV] rule; module boundaries must not cross [BND] lines. For each violation found: report it clearly, never auto-fix, escalate to user for resolution.
+   g. **Drift heuristic scan** — compare design patterns against [DFT] drift heuristics. Flag matches as warnings. NEVER auto-fix drift warnings — present them for user decision only.
 
-4. **Fix inconsistencies in place**
+4. **Fix inconsistencies in place** (checks a–e only)
    - Edit artifacts directly to resolve issues
-   - Maximum 5 edits per session
+   - Maximum 5 edits per session across checks a–e
    - Show what was changed and why
+   - Checks f and g: report findings to user only — never edit automatically
 
 5. **Generate summary** of changes made
 
@@ -49,7 +61,7 @@ After completing, summarize:
 - Next step: Run \`/syn:apply\` to start implementation`,
     license: 'MIT',
     compatibility: 'Requires synarcx CLI.',
-    metadata: { author: 'synarcx', version: '0.1' },
+    metadata: { author: 'synarcx', version: '0.4' },
   };
 }
 
@@ -58,7 +70,16 @@ export function getSynAnalyzeCommandTemplate(): CommandTemplate {
     name: 'syn:analyze',
     description: 'Cross-artifact consistency check for proposal, specs, design, and tasks',
     tags: ['workflow', 'analyze'],
-    content: `Run a cross-artifact consistency check for a change. Edits artifacts in place to fix issues found.
+    content: `## Step 0: Constitution Gate
+
+Read \`synspec/constitution.md\`.
+- If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first — analyze uses [INV] and [BND] to check artifact compliance."
+- If \`[INV]\` or \`[WFL]\` have \`confidence=pending\` or are empty → STOP with pending sections.
+- If valid → load [INV] and [BND] for checks 6–7.
+
+---
+
+Run a cross-artifact consistency check for a change. Edits artifacts in place to fix issues found.
 
 ---
 
@@ -81,13 +102,14 @@ export function getSynAnalyzeCommandTemplate(): CommandTemplate {
    - **Completeness** — no missing sections or dangling references
    - **Conflict detection** — contradictory statements between artifacts
    - **Traceability** — every task maps to a spec requirement
+   - **Constitution compliance** — [INV] and [BND] violations; never auto-fix, escalate to user
+   - **Drift scan** — compare against [DFT] heuristics; warn only, never auto-fix
 
-4. **Fix inconsistencies in place**
-   - Edit artifacts directly to resolve issues
-   - Maximum 5 edits per session
-   - Show what was changed and why
+4. **Fix inconsistencies in place** (checks 1–5 only; checks 6–7 report to user only)
+   - Maximum 5 edits total
+   - Show what changed and why
 
-5. **Generate summary** of changes made
+5. **Generate summary** of all findings: what was fixed vs. what needs user decision
 
 ---
 

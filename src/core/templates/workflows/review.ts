@@ -5,7 +5,16 @@ export function getSynReviewSkillTemplate(): SkillTemplate {
   return {
     name: 'syn-review',
     description: 'Quality gate that verifies implementation, runs sanity checks (test/lint/typecheck), and presents a three-way decision: archive, add more work, or start a new change.',
-    instructions: `Review a completed change — verify implementation, run sanity checks, and decide next steps.
+    instructions: `## Step 0: Constitution Gate
+
+Read \`synspec/constitution.md\`.
+- If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first — review uses [INV] and [DFT] to verify the implementation upholds project rules."
+- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If valid → read [QR], [INV], [BND], [DFT], and [DEC]. Use these to verify the implementation against invariants and boundary rules.
+
+---
+
+Review a completed change — verify implementation, run sanity checks, and decide next steps.
 
 ---
 
@@ -140,9 +149,25 @@ export function getSynReviewSkillTemplate(): SkillTemplate {
        - Update marker entry with \`syncedAt\` timestamp
        - On failure: change is already safely archived, show error, marker stays \`null\` for backstop retry
 
-    e. **Confirm**:
+    e. **Update marker** with \`syncedAt\` timestamp.
+
+    f. **Constitution patch** (archive→constitution):
+       - Read \`design.md\` from the archive directory
+       - Extract design decisions matching the strict format:
+           \`\`\`
+           ### D<N>: <title>
+           **Decision**: <text>
+           **Rationale**: <text>
+           \`\`\`
+       - Call \`synarcx patch constitution --decisions <json>\` to append new [DEC] entries (deduplication by first 40 chars of decision text)
+       - Scan \`design.md\` and \`tasks.md\` for "Exception to INV-NNN:" patterns — record each as a [EXC] entry
+       - Scan [INV] section of constitution — for any invariant ID referenced explicitly in \`design.md\` as "confirmed", upgrade confidence to \`explicit\`
+       - Report: "Constitution patched: +N decisions, N invariants confirmed, N exceptions recorded"
+
+    g. **Final confirm**:
        - "Archived <change-name> to synspec/changes/archive/YYYY-MM-DD-<name>/"
        - If specs were synced: "Specs synced: <capability>: +N ~M"
+       - Constitution patch summary
 
 ---
 
@@ -226,7 +251,7 @@ No delta specs to sync. Change archived.
 - Quick bypasses review — do not suggest review to users who used /syn:quick`,
     license: 'MIT',
     compatibility: 'Requires synarcx CLI.',
-    metadata: { author: 'synarcx', version: '1.0' },
+    metadata: { author: 'synarcx', version: '0.4' },
   };
 }
 
@@ -235,7 +260,16 @@ export function getSynReviewCommandTemplate(): CommandTemplate {
     name: 'syn:review',
     description: 'Review a completed change — verify implementation, run sanity checks, and decide next steps',
     tags: ['workflow', 'review'],
-    content: `Review a completed change — verify implementation, run sanity checks, and decide next steps.
+    content: `## Step 0: Constitution Gate
+
+Read \`synspec/constitution.md\`.
+- If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first — review uses [INV] and [DFT] to verify the implementation upholds project rules."
+- If \`[INV]\` or \`[WFL]\` have \`confidence=pending\` or are empty → STOP with pending sections.
+- If valid → read [QR], [INV], [BND], [DFT], [DEC].
+
+---
+
+Review a completed change — verify implementation, run sanity checks, and decide next steps.
 
 ---
 
@@ -304,7 +338,8 @@ export function getSynReviewCommandTemplate(): CommandTemplate {
     c. Move: \`mv synspec/changes/<name> synspec/changes/archive/YYYY-MM-DD-<name>\`
     d. Sync specs: \`findSpecUpdates(archivePath)\` → \`buildUpdatedSpec()\` → atomic write (\`.tmp\` + rename) → per-capability output
     e. Update marker with \`syncedAt\` timestamp
-    f. On failure: archive is already moved, marker stays \`null\`, backstop retries on next sync
+    f. **Constitution patch**: extract \`### D<N>:\` decisions from archived \`design.md\`, scan for "Exception to INV-NNN:" patterns in design+tasks, upgrade referenced [INV] confidence to \`explicit\`. Call \`synarcx patch constitution\`. Report: "+N decisions, N invariants confirmed, N exceptions"
+    g. On failure: archive is already moved, marker stays \`null\`, backstop retries on next sync
 
 ---
 

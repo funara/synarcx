@@ -16,9 +16,11 @@ import { FileSystemUtils } from '../../utils/file-system.js';
 
 export class Validator {
   private strictMode: boolean;
+  private shownWarnings: Set<string>;
 
   constructor(strictMode: boolean = false) {
     this.strictMode = strictMode;
+    this.shownWarnings = new Set();
   }
 
   async validateSpec(filePath: string): Promise<ValidationReport> {

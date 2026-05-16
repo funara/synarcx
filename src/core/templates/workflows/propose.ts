@@ -11,7 +11,16 @@ export function getSynProposeSkillTemplate(): SkillTemplate {
   return {
     name: 'syn-propose',
     description: 'Propose a new change with all artifacts generated in one step. Use when the user wants to quickly describe what they want to build and get a complete proposal with design, specs, and tasks ready for implementation.',
-    instructions: `Propose a new change - create the change and generate all artifacts in one step.
+    instructions: `## Step 0: Constitution Gate
+
+Read \`synspec/constitution.md\`.
+- If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first to establish project rules before creating a change proposal."
+- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If valid → read [QR], [INV], [BND], [WFL]. Use them to inform the proposal: scope decisions must not violate [INV], structure should align with [BND], delivery approach should match [WFL].
+
+---
+
+Propose a new change - create the change and generate all artifacts in one step.
 
 I'll create a change with artifacts:
 - proposal.md (what & why)
@@ -28,7 +37,7 @@ When ready to refine, run /syn:clarify — or skip to implementation with /syn:a
 
 1. **If no clear input provided, ask what they want to build**
 
-   Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
+   Ask the user (open-ended):
    > "What change do you want to work on? Describe what you want to build or fix."
 
    From their description, derive a kebab-case name (e.g., "add user authentication" → \`add-user-auth\`).
@@ -51,9 +60,7 @@ When ready to refine, run /syn:clarify — or skip to implementation with /syn:a
 
 4. **Create artifacts in sequence until apply-ready**
 
-   Use the **TodoWrite tool** to track progress through the artifacts.
-
-   Loop through artifacts in dependency order (artifacts with no pending dependencies first):
+   Track progress through the artifact list. Loop through artifacts in dependency order (artifacts with no pending dependencies first):
 
    a. **For each artifact that is \`ready\` (dependencies satisfied)**:
       - Get instructions:
@@ -112,7 +119,7 @@ After completing all artifacts, summarize:
 - Verify each artifact file exists after writing before proceeding to next`,
     license: 'MIT',
     compatibility: 'Requires synarcx CLI.',
-    metadata: { author: 'synarcx', version: '1.0' },
+    metadata: { author: 'synarcx', version: '0.4' },
   };
 }
 
@@ -121,7 +128,16 @@ export function getSynProposeCommandTemplate(): CommandTemplate {
     name: 'syn:propose',
     description: 'Propose a new change - create it and generate all artifacts in one step',
     tags: ['workflow', 'artifacts', 'experimental'],
-    content: `Propose a new change - create the change and generate all artifacts in one step.
+    content: `## Step 0: Constitution Gate
+
+Read \`synspec/constitution.md\`.
+- If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first before creating a change proposal."
+- If \`[INV]\` or \`[WFL]\` have \`confidence=pending\` or are empty → STOP with pending sections.
+- If valid → read [QR], [INV], [BND], [WFL] to inform proposal scope and constraints.
+
+---
+
+Propose a new change - create the change and generate all artifacts in one step.
 
 I'll create a change with artifacts:
 - proposal.md (what & why)
@@ -138,7 +154,7 @@ When ready to refine, run /syn:clarify — or skip to implementation with /syn:a
 
 1. **If no input provided, ask what they want to build**
 
-   Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
+   Ask the user (open-ended):
    > "What change do you want to work on? Describe what you want to build or fix."
 
    From their description, derive a kebab-case name (e.g., "add user authentication" → \`add-user-auth\`).
@@ -161,9 +177,7 @@ When ready to refine, run /syn:clarify — or skip to implementation with /syn:a
 
 4. **Create artifacts in sequence until apply-ready**
 
-   Use the **TodoWrite tool** to track progress through the artifacts.
-
-   Loop through artifacts in dependency order (artifacts with no pending dependencies first):
+   Track progress through the artifact list. Loop through artifacts in dependency order (artifacts with no pending dependencies first):
 
    a. **For each artifact that is \`ready\` (dependencies satisfied)**:
       - Get instructions:

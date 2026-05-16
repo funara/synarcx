@@ -5,7 +5,16 @@ export function getSynQuickSkillTemplate(): SkillTemplate {
   return {
     name: 'syn-quick',
     description: 'Fast-path for small, low-risk changes — reads context, shows change inline, asks confirmation, applies. No artifacts created.',
-    instructions: `Apply a small, low-risk change directly — no proposal, no specs, no artifacts. Describes the change inline, asks the user to confirm, then applies after confirmation.
+    instructions: `## Step 0: Constitution Gate
+
+Read \`synspec/constitution.md\`.
+- If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first to establish project rules before making changes."
+- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If valid → after scope check, cross-reference the proposed change against [INV]. If the change would violate any invariant, warn the user with the specific invariant before asking for confirmation.
+
+---
+
+Apply a small, low-risk change directly — no proposal, no specs, no artifacts. Describes the change inline, asks the user to confirm, then applies after confirmation.
 
 **Input**: The user describes the change to make. If no description provided, ask what they want to change.
 
@@ -82,7 +91,7 @@ After applying:
 - Note that no synspec artifacts were created`,
     license: 'MIT',
     compatibility: 'Requires synarcx CLI.',
-    metadata: { author: 'synarcx', version: '0.1' },
+    metadata: { author: 'synarcx', version: '0.4' },
   };
 }
 
@@ -91,7 +100,16 @@ export function getSynQuickCommandTemplate(): CommandTemplate {
     name: 'syn:quick',
     description: 'Apply a small, low-risk change directly — no artifacts, inline preview, confirmation step',
     tags: ['workflow', 'quick', 'fast'],
-    content: `Apply a small, low-risk change directly — no proposal, no specs, no artifacts. Describes the change inline, asks the user to confirm, then applies after confirmation.
+    content: `## Step 0: Constitution Gate
+
+Read \`synspec/constitution.md\`.
+- If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first to establish project rules before making changes."
+- If \`[INV]\` or \`[WFL]\` have \`confidence=pending\` or are empty → STOP with pending sections.
+- If valid → after scope check, cross-reference the change against [INV]. If it would violate an invariant, warn the user before asking for confirmation.
+
+---
+
+Apply a small, low-risk change directly — no proposal, no specs, no artifacts. Describes the change inline, asks the user to confirm, then applies after confirmation.
 
 **Input**: The argument after \`/syn:quick\` describes the change to make.
 

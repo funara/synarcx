@@ -11,7 +11,16 @@ export function getSynExploreSkillTemplate(): SkillTemplate {
   return {
     name: 'syn-explore',
     description: 'Enter explore mode - a thinking partner for exploring ideas, investigating problems, and clarifying requirements. Use when the user wants to think through something before or during a change.',
-    instructions: `Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
+    instructions: `## Step 0: Constitution Gate
+
+Read \`synspec/constitution.md\`.
+- If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first to establish project rules — explore uses them to ground its suggestions."
+- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If valid → read [QR] and [INV] sections. Use [INV] to ground exploration; cross-check ideas against invariants when routing to \`/syn:propose\`.
+
+---
+
+Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
 
 **IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search code, and investigate the codebase, but you must NEVER write code or implement features. If the user asks you to implement something, remind them to exit explore mode first and create a change proposal. You MAY create synarcx artifacts (proposals, designs, specs) if the user asks—that's capturing thinking, not implementing.
 
@@ -299,7 +308,7 @@ But this summary is optional. Sometimes the thinking IS the value.
 - **Do question assumptions** - Including the user's and your own`,
     license: 'MIT',
     compatibility: 'Requires synarcx CLI.',
-    metadata: { author: 'synarcx', version: '1.0' },
+    metadata: { author: 'synarcx', version: '0.4' },
   };
 }
 
@@ -308,7 +317,16 @@ export function getSynExploreCommandTemplate(): CommandTemplate {
     name: 'syn:explore',
     description: 'Enter explore mode - think through ideas, investigate problems, clarify requirements',
     tags: ['workflow', 'explore', 'thinking'],
-    content: `Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
+    content: `## Step 0: Constitution Gate
+
+Read \`synspec/constitution.md\`.
+- If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first to establish project rules — explore uses them to ground its suggestions."
+- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If valid → read [QR] and [INV]. Use [INV] to ground exploration; cross-check ideas against invariants when routing to \`/syn:propose\`.
+
+---
+
+Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
 
 **IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search code, and investigate the codebase, but you must NEVER write code or implement features. If the user asks you to implement something, remind them to exit explore mode first and create a change proposal. You MAY create synarcx artifacts (proposals, designs, specs) if the user asks—that's capturing thinking, not implementing.
 

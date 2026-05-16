@@ -11,7 +11,16 @@ export function getSynApplySkillTemplate(): SkillTemplate {
   return {
     name: 'syn-apply',
     description: 'Implement tasks from a synarcx change. Use when the user wants to start implementing, continue implementation, or work through tasks.',
-    instructions: `Implement tasks from a synarcx change.
+    instructions: `## Step 0: Constitution Gate
+
+Read \`synspec/constitution.md\`.
+- If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first — apply uses [INV] and [DFT] to guard each task against architectural drift."
+- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If valid → read [QR], [INV], and [DFT]. Before starting each task, check whether the implementation approach would violate any [INV] rule. If a task would violate an invariant, pause and present the conflict to the user before proceeding.
+
+---
+
+Implement tasks from a synarcx change.
 
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
@@ -158,7 +167,7 @@ This skill supports the "actions on a change" model:
 - **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly`,
     license: 'MIT',
     compatibility: 'Requires synarcx CLI.',
-    metadata: { author: 'synarcx', version: '1.0' },
+    metadata: { author: 'synarcx', version: '0.4' },
   };
 }
 
@@ -167,7 +176,16 @@ export function getSynApplyCommandTemplate(): CommandTemplate {
     name: 'syn:apply',
     description: 'Implement tasks from a synarcx change',
     tags: ['workflow', 'artifacts'],
-    content: `Implement tasks from a synarcx change.
+    content: `## Step 0: Constitution Gate
+
+Read \`synspec/constitution.md\`.
+- If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first — apply uses [INV] and [DFT] to guard tasks against architectural drift."
+- If \`[INV]\` or \`[WFL]\` have \`confidence=pending\` or are empty → STOP with pending sections.
+- If valid → read [QR], [INV], [DFT]. Before each task, check if the implementation would violate an [INV] rule. If so, pause and present the conflict before proceeding.
+
+---
+
+Implement tasks from a synarcx change.
 
 **Input**: Optionally specify a change name (e.g., \`/syn:apply add-auth\`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 

@@ -8,7 +8,6 @@ export type { SkillTemplate, CommandTemplate } from './types.js';
 
 export { getSynExploreSkillTemplate, getSynExploreCommandTemplate } from './workflows/explore.js';
 export { getSynApplySkillTemplate, getSynApplyCommandTemplate } from './workflows/apply-change.js';
-export { getSynArchiveSkillTemplate, getSynArchiveCommandTemplate } from './workflows/archive-change.js';
 export { getSynProposeSkillTemplate, getSynProposeCommandTemplate } from './workflows/propose.js';
 export { getSynSyncSkillTemplate, getSynSyncCommandTemplate } from './workflows/sync.js';
 export { getSynClarifySkillTemplate, getSynClarifyCommandTemplate } from './workflows/clarify.js';

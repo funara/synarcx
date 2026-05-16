@@ -148,49 +148,55 @@ describe('workflow next-step suggestions', () => {
   })
 })
 
-describe('sync version check', () => {
-  describe('sync skill template contains version check', () => {
-    it('instructions mention Step 1 version check header', () => {
-      expect(getSynSyncSkillTemplate().instructions).toContain('Step 1: SynArcX Version Check')
+describe('sync staged pipeline (v0.4)', () => {
+  describe('sync skill template contains 6-stage pipeline', () => {
+    it('instructions contain Stage 1: Mode Detection', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('Stage 1: Mode Detection')
     })
-    it('instructions mention .version-cache.json', () => {
-      expect(getSynSyncSkillTemplate().instructions).toContain('.version-cache.json')
+    it('instructions contain Stage 2: Scan', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('Stage 2: Scan')
     })
-    it('instructions mention AskUserQuestion', () => {
-      expect(getSynSyncSkillTemplate().instructions).toContain('AskUserQuestion')
+    it('instructions contain Stage 3: Inference', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('Stage 3: Inference')
     })
-    it('instructions mention npm install -g synarcx@latest', () => {
-      expect(getSynSyncSkillTemplate().instructions).toContain('npm install -g synarcx@latest')
+    it('instructions contain Stage 4: Clarify', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('Stage 4: Clarify')
     })
-    it('instructions mention synarcx update (post-update suggestion)', () => {
-      expect(getSynSyncSkillTemplate().instructions).toContain('synarcx update')
+    it('instructions contain Stage 5: Normalize', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('Stage 5: Normalize')
     })
-    it('instructions mention segment comparison', () => {
-      expect(getSynSyncSkillTemplate().instructions).toContain('.')
+    it('instructions contain Stage 6: Write', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('Stage 6: Write')
     })
-    it('instructions mention latestVersion: null (cache-on-failure)', () => {
-      expect(getSynSyncSkillTemplate().instructions).toContain('latestVersion: null')
+    it('instructions mention greenfield mode', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('greenfield')
+    })
+    it('instructions mention brownfield mode', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('brownfield')
+    })
+    it('instructions mention constitution.md', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('constitution.md')
+    })
+    it('instructions mention pending spec backstop (Step 0)', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('Pending Spec Backstop')
+    })
+    it('instructions mention hard stop for old constitution format', () => {
+      expect(getSynSyncSkillTemplate().instructions).toContain('Old constitution format detected')
     })
   })
 
-  describe('sync command template contains version check', () => {
-    it('content mentions Step 1 version check header', () => {
-      expect(getSynSyncCommandTemplate().content).toContain('Step 1: SynArcX Version Check')
+  describe('sync command template contains 6-stage pipeline', () => {
+    it('content mentions Stage 1: Mode Detection', () => {
+      expect(getSynSyncCommandTemplate().content).toContain('Stage 1: Mode Detection')
     })
-    it('content mentions .version-cache.json', () => {
-      expect(getSynSyncCommandTemplate().content).toContain('.version-cache.json')
+    it('content mentions greenfield mode', () => {
+      expect(getSynSyncCommandTemplate().content).toContain('greenfield')
     })
-    it('content mentions AskUserQuestion', () => {
-      expect(getSynSyncCommandTemplate().content).toContain('AskUserQuestion')
+    it('content mentions brownfield mode', () => {
+      expect(getSynSyncCommandTemplate().content).toContain('brownfield')
     })
-    it('content mentions npm install -g synarcx@latest', () => {
-      expect(getSynSyncCommandTemplate().content).toContain('npm install -g synarcx@latest')
-    })
-    it('content mentions synarcx update (post-update suggestion)', () => {
-      expect(getSynSyncCommandTemplate().content).toContain('synarcx update')
-    })
-    it('content mentions latestVersion: null (cache-on-failure)', () => {
-      expect(getSynSyncCommandTemplate().content).toContain('latestVersion: null')
+    it('content mentions constitution.md', () => {
+      expect(getSynSyncCommandTemplate().content).toContain('constitution.md')
     })
   })
 })

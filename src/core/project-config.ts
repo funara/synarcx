@@ -39,6 +39,7 @@ export const ProjectConfigSchema = z.object({
     )
     .optional()
     .describe('Per-artifact rules, keyed by artifact ID'),
+
 });
 
 export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
