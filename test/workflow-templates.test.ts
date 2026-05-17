@@ -8,6 +8,7 @@ import { getSynProposeSkillTemplate, getSynProposeCommandTemplate } from '../src
 import { getSynApplySkillTemplate, getSynApplyCommandTemplate } from '../src/core/templates/workflows/apply-change.js'
 import { getSynRefactorSkillTemplate, getSynRefactorCommandTemplate } from '../src/core/templates/workflows/refactor.js'
 import { getSynQuickSkillTemplate, getSynQuickCommandTemplate } from '../src/core/templates/workflows/quick.js'
+import { getSynReviewSkillTemplate, getSynReviewCommandTemplate } from '../src/core/templates/workflows/review.js'
 
 const templateFns = [
   ['sync', getSynSyncSkillTemplate],
@@ -282,5 +283,90 @@ describe('refactor command behavior', () => {
     it('command template content matches snapshot', () => {
       expect(getSynRefactorCommandTemplate().content).toMatchSnapshot()
     })
+  })
+})
+
+describe('constitution gate language — no confidence=pending', () => {
+  const allTemplates = [
+    ['sync skill', getSynSyncSkillTemplate().instructions],
+    ['sync command', getSynSyncCommandTemplate().content],
+    ['clarify skill', getSynClarifySkillTemplate().instructions],
+    ['clarify command', getSynClarifyCommandTemplate().content],
+    ['analyze skill', getSynAnalyzeSkillTemplate().instructions],
+    ['analyze command', getSynAnalyzeCommandTemplate().content],
+    ['debug skill', getSynDebugSkillTemplate().instructions],
+    ['debug command', getSynDebugCommandTemplate().content],
+    ['explore skill', getSynExploreSkillTemplate().instructions],
+    ['explore command', getSynExploreCommandTemplate().content],
+    ['propose skill', getSynProposeSkillTemplate().instructions],
+    ['propose command', getSynProposeCommandTemplate().content],
+    ['apply skill', getSynApplySkillTemplate().instructions],
+    ['apply command', getSynApplyCommandTemplate().content],
+    ['quick skill', getSynQuickSkillTemplate().instructions],
+    ['quick command', getSynQuickCommandTemplate().content],
+    ['review skill', getSynReviewSkillTemplate().instructions],
+    ['review command', getSynReviewCommandTemplate().content],
+  ] as const
+
+  for (const [name, content] of allTemplates) {
+    it(`${name} does not contain confidence=pending`, () => {
+      expect(content).not.toContain('confidence=pending')
+    })
+  }
+})
+
+describe('propose clarify-first', () => {
+  it('skill instructions mention /syn:clarify as next step', () => {
+    expect(getSynProposeSkillTemplate().instructions).toContain('/syn:clarify')
+  })
+  it('command content mentions /syn:clarify as next step', () => {
+    expect(getSynProposeCommandTemplate().content).toContain('/syn:clarify')
+  })
+  it('skill instructions frame /syn:apply as a bypass, not primary', () => {
+    const instructions = getSynProposeSkillTemplate().instructions
+    const clarifyIdx = instructions.indexOf('/syn:clarify')
+    const applyIdx = instructions.indexOf('/syn:apply')
+    expect(clarifyIdx).toBeGreaterThanOrEqual(0)
+    expect(applyIdx).toBeGreaterThanOrEqual(0)
+    // clarify is mentioned before apply in the completion prompt
+    expect(clarifyIdx).toBeLessThan(applyIdx)
+  })
+})
+
+describe('sync Stage 6 self-validation', () => {
+  it('skill instructions mention self-validation before writing', () => {
+    expect(getSynSyncSkillTemplate().instructions).toContain('self-validate')
+  })
+  it('command content mentions self-validation before writing', () => {
+    expect(getSynSyncCommandTemplate().content).toContain('self-validate')
+  })
+  it('skill instructions check for INV items before writing', () => {
+    expect(getSynSyncSkillTemplate().instructions).toContain('**INV-NNN**')
+  })
+  it('skill instructions check for WFL items before writing', () => {
+    expect(getSynSyncSkillTemplate().instructions).toContain('**WFL-NNN**')
+  })
+})
+
+describe('sync post-output — Where to next?', () => {
+  it('skill instructions contain "Where to next?"', () => {
+    expect(getSynSyncSkillTemplate().instructions).toContain('Where to next?')
+  })
+  it('command content contains "Where to next?"', () => {
+    expect(getSynSyncCommandTemplate().content).toContain('Where to next?')
+  })
+  it('skill instructions suggest /syn:explore in where-to-next block', () => {
+    expect(getSynSyncSkillTemplate().instructions).toContain('/syn:explore')
+  })
+  it('skill instructions do not contain schema: synarcx/constitution', () => {
+    expect(getSynSyncSkillTemplate().instructions).not.toContain('schema: synarcx/constitution')
+  })
+  it('command content does not contain schema: synarcx/constitution', () => {
+    expect(getSynSyncCommandTemplate().content).not.toContain('schema: synarcx/constitution')
+  })
+  it('skill instructions mention stripping schema: during UPDATE mode', () => {
+    expect(getSynSyncSkillTemplate().instructions).toContain('schema:')
+    // the word schema: appears only in the context of stripping it, not setting it
+    expect(getSynSyncSkillTemplate().instructions).toContain('strip')
   })
 })

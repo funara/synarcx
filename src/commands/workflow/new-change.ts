@@ -6,7 +6,7 @@
 
 import ora from 'ora';
 import path from 'path';
-import { createChange, validateChangeName } from '../../utils/change-utils.js';
+import { createChange, validateChangeName } from '../../core/change-utils.js';
 import { validateSchemaExists } from './shared.js';
 import { SYNSPEC_DIR_NAME } from '../../core/config.js';
 

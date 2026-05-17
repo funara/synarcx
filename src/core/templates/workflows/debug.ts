@@ -9,7 +9,7 @@ export function getSynDebugSkillTemplate(): SkillTemplate {
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first to establish project rules before debugging."
-- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If \`[INV]\` or \`[WFL]\` sections have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution [TAG] section is empty. Run /syn:sync to complete it." (list which sections)
 - If valid → load [INV] and [BND] for Phase 1 context (do the reported symptoms suggest an invariant is being violated?); load [DEC] for Phase 2 pattern matching (is this a known class of issue?).
 
 ---
@@ -87,7 +87,7 @@ export function getSynDebugCommandTemplate(): CommandTemplate {
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first to establish project rules before debugging."
-- If \`[INV]\` or \`[WFL]\` have \`confidence=pending\` or are empty → STOP with pending sections.
+- If \`[INV]\` or \`[WFL]\` have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution [TAG] section is empty. Run /syn:sync to complete it."
 - If valid → load [INV] and [BND] for Phase 1; load [DEC] for Phase 2 pattern matching.
 
 ---

@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { SYNSPEC_DIR_NAME } from '../core/config.js';
+import { SYNSPEC_DIR_NAME } from './config.js';
 
 export async function getActiveChangeIds(root: string = process.cwd()): Promise<string[]> {
   const changesPath = path.join(root, SYNSPEC_DIR_NAME, 'changes');

@@ -3,7 +3,7 @@ import { CompletionFactory } from '../core/completions/factory.js';
 import { COMMAND_REGISTRY } from '../core/completions/command-registry.js';
 import { detectShell, SupportedShell } from '../utils/shell-detection.js';
 import { CompletionProvider } from '../core/completions/completion-provider.js';
-import { getArchivedChangeIds } from '../utils/item-discovery.js';
+import { getArchivedChangeIds } from '../core/item-discovery.js';
 
 interface GenerateOptions {
   shell?: string;

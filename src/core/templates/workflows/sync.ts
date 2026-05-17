@@ -5,7 +5,7 @@ export function getSynSyncSkillTemplate(): SkillTemplate {
   return {
     name: 'syn-sync',
     description: 'Generate or update synspec/constitution.md — scans codebase, interviews the architect, infers invariants, and writes a structured v0.4 constitution.',
-    instructions: `Execute this pipeline now — begin with Step 0. Do not describe the pipeline or ask for instructions.
+    instructions: `Execute this pipeline now — begin with Step 0. Do not describe the pipeline or ask for instructions. Work through each stage silently — do not announce stage transitions or narrate intermediate steps. Output only: the final constitution summary and the "Where to next?" block.
 
 ---
 
@@ -79,11 +79,12 @@ Check if a newer version of synarcx is available. Runs at most once every 7 days
 Check whether \`synspec/constitution.md\` exists.
 
 **If it EXISTS:**
-- Read the YAML frontmatter at the top of the file.
-- If the frontmatter does NOT contain a \`schema:\` key: **HARD STOP.**
+- Read the file content.
+- If the file contains \`<!-- SECTION:\` HTML comment markers: **HARD STOP.**
   Output exactly: "Old constitution format detected. Delete \`synspec/constitution.md\` and re-run \`/syn:sync\` to generate a v0.4 constitution."
   Do NOT write any files. Do NOT proceed further.
-- If the frontmatter DOES contain a \`schema:\` key: set mode = \`update\`.
+- If the YAML frontmatter contains a \`fingerprint:\` key: set mode = \`update\`.
+- If neither condition matches: treat as missing (proceed to brownfield/greenfield detection below).
 
 **If it does NOT exist:**
 - Check whether meaningful source code exists in the project. Meaningful source code means any of: a \`src/\` directory, a \`lib/\` directory, an \`app/\` directory, an \`index.*\` or \`main.*\` entry point file, or more than 5 non-config files at the root.
@@ -180,7 +181,6 @@ Concatenate all \`[INV]\` item texts and all \`[DEC]\` item texts in section ord
 **Assemble YAML frontmatter:**
 \`\`\`yaml
 ---
-schema: synarcx/constitution@0.4
 version: <1 for new, increment by 1 for update>
 last_sync: <today YYYY-MM-DD>
 fingerprint: <computed 8-char hex>
@@ -235,12 +235,54 @@ Write the full \`synspec/constitution.md\` file using this 8-section structure:
 **UPDATE mode:**
 - For each section, compare old content (read in Stage 2) to new content (assembled in Stages 3–5).
 - Only rewrite sections that have changed. Preserve unchanged sections byte-for-byte.
+- When rewriting the frontmatter, strip any \`schema:\` line if present (auto-clean for users upgrading from v0.4).
 - Write atomically: write to \`synspec/constitution.md.tmp\` first, then rename to \`synspec/constitution.md\`.
 - Increment the \`version\` field by 1.
 - Recompute the fingerprint from the new \`[INV]\` + \`[DEC]\` content.
 
+**Before writing — self-validate the generated output:**
+1. Verify all 8 \`## [TAG]\` headers are present: \`[QR]\`, \`[INV]\`, \`[BND]\`, \`[DEC]\`, \`[DFT]\`, \`[WFL]\`, \`[EXC]\`, \`[OWN]\`.
+2. Verify \`[INV]\` contains at least one \`**INV-NNN** —\` item.
+3. Verify \`[WFL]\` contains at least one \`**WFL-NNN** —\` item.
+4. If any check fails: regenerate the missing or empty section inline — do NOT write a partial constitution.
+
 **Output:**
-Summarize what was created or updated. State the version number. List how many items are in each section (e.g., "[INV]: 4 items, [BND]: 2 items, [DFT]: 3 items").`,
+Summarize what was created or updated. State the version number. List how many items are in each section (e.g., "[INV]: 4 items, [BND]: 2 items, [DFT]: 3 items").
+
+**Where to next?**
+After printing the section summary, run \`synarcx list --json\` and print a context-aware block:
+
+- **No active changes** (empty list or command fails):
+  \`\`\`
+  Where to next?
+    /syn:explore   — think through what to build
+    /syn:propose   — create a change directly
+    /syn:refactor  — map current vs target structure
+    /syn:debug     — diagnose a known issue
+  \`\`\`
+
+- **Active changes with tasks remaining** (status not "complete"):
+  \`\`\`
+  Active change: <name>  (<completedTasks>/<totalTasks> tasks)
+
+  Where to next?
+    /syn:apply     — continue implementing tasks
+    /syn:clarify   — refine artifacts before continuing
+    /syn:explore   — think through what to build next
+    /syn:propose   — create a new change
+  \`\`\`
+
+- **Active changes all complete** (all status "complete"):
+  \`\`\`
+  Ready to review: <name>  (<totalTasks>/<totalTasks> ✓)
+
+  Where to next?
+    /syn:review    — verify implementation and archive
+    /syn:explore   — think through what to build next
+    /syn:propose   — create a new change
+  \`\`\`
+
+- **Mixed** (some complete, some in progress): list all changes by name and status, then show suggestions covering both states (review + apply/clarify + explore/propose).`,
     license: 'MIT',
     compatibility: 'Requires synarcx CLI.',
     metadata: { author: 'synarcx', version: '0.4' },
@@ -252,7 +294,7 @@ export function getSynSyncCommandTemplate(): CommandTemplate {
     name: 'syn:sync',
     description: 'Generate/update project constitution with codebase scan, architect interview, and structured v0.4 constitution output',
     tags: ['workflow', 'sync', 'project'],
-    content: `Execute this pipeline now — begin with Step 0. Do not describe the pipeline or ask for instructions.
+    content: `Execute this pipeline now — begin with Step 0. Do not describe the pipeline or ask for instructions. Work through each stage silently — do not announce stage transitions or narrate intermediate steps. Output only: the final constitution summary and the "Where to next?" block.
 
 ---
 
@@ -275,8 +317,9 @@ Read \`~/.synarcx/version-cache.json\`. If \`lastCheck\` is within the last 7 da
 ## Stage 1: Mode Detection
 
 Check if \`synspec/constitution.md\` exists.
-- EXISTS + no \`schema:\` in frontmatter → **HARD STOP**: "Old constitution format detected. Delete \`synspec/constitution.md\` and re-run \`/syn:sync\` to generate a v0.4 constitution."
-- EXISTS + \`schema:\` present → mode = \`update\`
+- EXISTS + contains \`<!-- SECTION:\` HTML markers → **HARD STOP**: "Old constitution format detected. Delete \`synspec/constitution.md\` and re-run \`/syn:sync\` to generate a v0.4 constitution."
+- EXISTS + frontmatter has \`fingerprint:\` key → mode = \`update\`
+- EXISTS + neither condition → treat as missing (run brownfield/greenfield detection)
 - NOT exists + meaningful source code (src/, lib/, app/, index.*, main.*, or >5 non-config files) → mode = \`brownfield\`
 - NOT exists + no meaningful source code → mode = \`greenfield\`
 
@@ -323,7 +366,7 @@ Cannot skip. Must run regardless of inferred confidence.
 
 - Assign stable IDs: \`INV-001\`, \`DEC-001\`, \`DFT-001\` (sequential, zero-padded to 3 digits).
 - Compute fingerprint: concatenate all \`[INV]\` + \`[DEC]\` item texts in order, apply djb2 (\`h=5381; h=((h<<5)+h)^c per char; (h>>>0).toString(16).padStart(8,'0')\`).
-- Assemble frontmatter: \`schema: synarcx/constitution@0.4\`, \`version\` (1 for new, increment for update), \`last_sync\` (YYYY-MM-DD), \`fingerprint\`, \`mode\`.
+- Assemble frontmatter: \`version\` (1 for new, increment for update), \`last_sync\` (YYYY-MM-DD), \`fingerprint\`, \`mode\`. Do NOT include a \`schema:\` field.
 - Write \`[QR]\` (≤60 tokens): primary layer rule, primary auth/security invariant, tech stack one-liner, mode + last_sync.
 
 ---
@@ -331,8 +374,24 @@ Cannot skip. Must run regardless of inferred confidence.
 ## Stage 6: Write
 
 - **First run (greenfield/brownfield)**: Write full \`synspec/constitution.md\` with all 8 sections: \`[QR]\`, \`[INV]\`, \`[BND]\`, \`[DEC]\`, \`[DFT]\`, \`[WFL]\`, \`[EXC]\`, \`[OWN]\`.
-- **UPDATE**: Compare old vs new per section. Only rewrite changed sections; preserve unchanged sections byte-for-byte. Write atomically (.tmp + rename). Increment version. Recompute fingerprint.
+- **UPDATE**: Compare old vs new per section. Only rewrite changed sections; preserve unchanged sections byte-for-byte. Strip any \`schema:\` line from the frontmatter if present (auto-clean for users upgrading from v0.4). Write atomically (.tmp + rename). Increment version. Recompute fingerprint.
 
-**Output**: Summarize what was created/updated, state version, list item count per section.`,
+**Before writing — self-validate:** verify all 8 \`## [TAG]\` headers present, \`[INV]\` has at least one \`**INV-NNN** —\` item, \`[WFL]\` has at least one \`**WFL-NNN** —\` item. If not, regenerate the missing section before writing.
+
+**Output**: Summarize what was created/updated, state version, list item count per section.
+
+**Where to next?** After the summary, run \`synarcx list --json\` and print a context-aware block:
+
+- **No active changes** (empty list or command fails):
+  \`\`\`
+  Where to next?
+    /syn:explore   — think through what to build
+    /syn:propose   — create a change directly
+    /syn:refactor  — map current vs target structure
+    /syn:debug     — diagnose a known issue
+  \`\`\`
+- **Active changes with tasks remaining**: print change name + progress, then \`/syn:apply — continue implementing tasks\`, \`/syn:clarify — refine artifacts before continuing\`, \`/syn:explore — think through what to build next\`, \`/syn:propose — create a new change\`.
+- **Active changes all complete**: print change name + ✓, then \`/syn:review — verify implementation and archive\`, \`/syn:explore — think through what to build next\`, \`/syn:propose — create a new change\`.
+- **Mixed**: list all changes by name and status, then show suggestions covering both states.`,
   });
 }

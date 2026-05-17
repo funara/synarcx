@@ -5,7 +5,7 @@ import { MarkdownParser } from '../core/parsers/markdown-parser.js';
 import { Validator } from '../core/validation/validator.js';
 import type { Spec } from '../core/schemas/index.js';
 import { isInteractive } from '../utils/interactive.js';
-import { getSpecIds } from '../utils/item-discovery.js';
+import { getSpecIds } from '../core/item-discovery.js';
 import { SYNSPEC_DIR_NAME } from '../core/config.js';
 
 const SPECS_DIR = `${SYNSPEC_DIR_NAME}/specs`;

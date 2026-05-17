@@ -1,9 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as yaml from 'yaml';
-import { ChangeMetadataSchema, type ChangeMetadata } from '../core/artifact-graph/types.js';
-import { listSchemas } from '../core/artifact-graph/resolver.js';
-import { readProjectConfig } from '../core/project-config.js';
+import { ChangeMetadataSchema, type ChangeMetadata } from './artifact-graph/types.js';
+import { listSchemas } from './artifact-graph/resolver.js';
+import { readProjectConfig } from './project-config.js';
 
 const METADATA_FILENAME = '.synspec.yaml';
 

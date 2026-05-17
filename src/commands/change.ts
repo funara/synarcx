@@ -5,7 +5,7 @@ import { Validator } from '../core/validation/validator.js';
 import { ChangeParser } from '../core/parsers/change-parser.js';
 import { Change } from '../core/schemas/index.js';
 import { isInteractive } from '../utils/interactive.js';
-import { getActiveChangeIds } from '../utils/item-discovery.js';
+import { getActiveChangeIds } from '../core/item-discovery.js';
 import { SYNSPEC_DIR_NAME } from '../core/config.js';
 
 // Constants for better maintainability

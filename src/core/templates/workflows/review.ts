@@ -9,7 +9,7 @@ export function getSynReviewSkillTemplate(): SkillTemplate {
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first — review uses [INV] and [DFT] to verify the implementation upholds project rules."
-- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If \`[INV]\` or \`[WFL]\` sections have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution [TAG] section is empty. Run /syn:sync to complete it." (list which sections)
 - If valid → read [QR], [INV], [BND], [DFT], and [DEC]. Use these to verify the implementation against invariants and boundary rules.
 
 ---
@@ -152,17 +152,23 @@ Review a completed change — verify implementation, run sanity checks, and deci
     e. **Update marker** with \`syncedAt\` timestamp.
 
     f. **Constitution patch** (archive→constitution):
-       - Read \`design.md\` from the archive directory
+       - Read \`design.md\` and \`tasks.md\` from the archive directory
        - Extract design decisions matching the strict format:
            \`\`\`
            ### D<N>: <title>
            **Decision**: <text>
            **Rationale**: <text>
            \`\`\`
-       - Call \`synarcx patch constitution --decisions <json>\` to append new [DEC] entries (deduplication by first 40 chars of decision text)
-       - Scan \`design.md\` and \`tasks.md\` for "Exception to INV-NNN:" patterns — record each as a [EXC] entry
-       - Scan [INV] section of constitution — for any invariant ID referenced explicitly in \`design.md\` as "confirmed", upgrade confidence to \`explicit\`
-       - Report: "Constitution patched: +N decisions, N invariants confirmed, N exceptions recorded"
+       - Scan \`design.md\` and \`tasks.md\` for "Exception to INV-NNN:" patterns to collect exceptions
+       - Write \`synspec/.constitution-patch.json\` in this format:
+           \`\`\`json
+           { "patches": [
+             { "type": "decision", "decision": "...", "rationale": "...", "source": "archive" },
+             { "type": "exception", "ref": "INV-NNN", "exception": "..." }
+           ] }
+           \`\`\`
+       - Call \`synarcx patch constitution\` — the command appends entries, deduplicates by first 60 chars, and auto-deletes the patch file on success
+       - Report the command output (e.g., "Constitution patched: +N decisions, +N exceptions. version: X → Y")
 
     g. **Final confirm**:
        - "Archived <change-name> to synspec/changes/archive/YYYY-MM-DD-<name>/"
@@ -264,7 +270,7 @@ export function getSynReviewCommandTemplate(): CommandTemplate {
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first — review uses [INV] and [DFT] to verify the implementation upholds project rules."
-- If \`[INV]\` or \`[WFL]\` have \`confidence=pending\` or are empty → STOP with pending sections.
+- If \`[INV]\` or \`[WFL]\` have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution [TAG] section is empty. Run /syn:sync to complete it."
 - If valid → read [QR], [INV], [BND], [DFT], [DEC].
 
 ---
@@ -338,7 +344,7 @@ Review a completed change — verify implementation, run sanity checks, and deci
     c. Move: \`mv synspec/changes/<name> synspec/changes/archive/YYYY-MM-DD-<name>\`
     d. Sync specs: \`findSpecUpdates(archivePath)\` → \`buildUpdatedSpec()\` → atomic write (\`.tmp\` + rename) → per-capability output
     e. Update marker with \`syncedAt\` timestamp
-    f. **Constitution patch**: extract \`### D<N>:\` decisions from archived \`design.md\`, scan for "Exception to INV-NNN:" patterns in design+tasks, upgrade referenced [INV] confidence to \`explicit\`. Call \`synarcx patch constitution\`. Report: "+N decisions, N invariants confirmed, N exceptions"
+    f. **Constitution patch**: extract \`### D<N>:\` decisions from archived \`design.md\`, scan for "Exception to INV-NNN:" patterns in design+tasks. Write \`synspec/.constitution-patch.json\` with \`{ "patches": [...] }\` format. Call \`synarcx patch constitution\` — auto-deletes the file on success. Report command output.
     g. On failure: archive is already moved, marker stays \`null\`, backstop retries on next sync
 
 ---

@@ -15,7 +15,7 @@ export function getSynExploreSkillTemplate(): SkillTemplate {
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first to establish project rules — explore uses them to ground its suggestions."
-- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If \`[INV]\` or \`[WFL]\` sections have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution [TAG] section is empty. Run /syn:sync to complete it." (list which sections)
 - If valid → read [QR] and [INV] sections. Use [INV] to ground exploration; cross-check ideas against invariants when routing to \`/syn:propose\`.
 
 ---
@@ -321,7 +321,7 @@ export function getSynExploreCommandTemplate(): CommandTemplate {
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first to establish project rules — explore uses them to ground its suggestions."
-- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If \`[INV]\` or \`[WFL]\` sections have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution [TAG] section is empty. Run /syn:sync to complete it." (list which sections)
 - If valid → read [QR] and [INV]. Use [INV] to ground exploration; cross-check ideas against invariants when routing to \`/syn:propose\`.
 
 ---

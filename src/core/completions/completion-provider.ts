@@ -1,4 +1,4 @@
-import { getActiveChangeIds, getSpecIds } from '../../utils/item-discovery.js';
+import { getActiveChangeIds, getSpecIds } from '../item-discovery.js';
 import { listSchemas } from '../artifact-graph/index.js';
 
 /**

@@ -9,7 +9,7 @@ export function getSynAnalyzeSkillTemplate(): SkillTemplate {
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first — analyze uses [INV] and [BND] to check artifact compliance."
-- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If \`[INV]\` or \`[WFL]\` sections have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution [TAG] section is empty. Run /syn:sync to complete it." (list which sections)
 - If valid → load [INV] and [BND] for checks 6 and 7 below.
 
 ---
@@ -74,7 +74,7 @@ export function getSynAnalyzeCommandTemplate(): CommandTemplate {
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first — analyze uses [INV] and [BND] to check artifact compliance."
-- If \`[INV]\` or \`[WFL]\` have \`confidence=pending\` or are empty → STOP with pending sections.
+- If \`[INV]\` or \`[WFL]\` have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution [TAG] section is empty. Run /syn:sync to complete it."
 - If valid → load [INV] and [BND] for checks 6–7.
 
 ---

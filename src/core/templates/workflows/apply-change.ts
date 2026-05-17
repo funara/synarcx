@@ -15,7 +15,7 @@ export function getSynApplySkillTemplate(): SkillTemplate {
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first — apply uses [INV] and [DFT] to guard each task against architectural drift."
-- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If \`[INV]\` or \`[WFL]\` sections have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution [TAG] section is empty. Run /syn:sync to complete it." (list which sections)
 - If valid → read [QR], [INV], and [DFT]. Before starting each task, check whether the implementation approach would violate any [INV] rule. If a task would violate an invariant, pause and present the conflict to the user before proceeding.
 
 ---
@@ -180,7 +180,7 @@ export function getSynApplyCommandTemplate(): CommandTemplate {
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first — apply uses [INV] and [DFT] to guard tasks against architectural drift."
-- If \`[INV]\` or \`[WFL]\` have \`confidence=pending\` or are empty → STOP with pending sections.
+- If \`[INV]\` or \`[WFL]\` have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution [TAG] section is empty. Run /syn:sync to complete it."
 - If valid → read [QR], [INV], [DFT]. Before each task, check if the implementation would violate an [INV] rule. If so, pause and present the conflict before proceeding.
 
 ---

@@ -14,7 +14,7 @@ export function getSynClarifySkillTemplate(): SkillTemplate {
 Read \`synspec/constitution.md\`.
 
 - If the file does not exist → STOP with: "Constitution not found. Run /syn:sync first — all workflow commands depend on it to enforce project rules."
-- If the file exists but the [INV] or [WFL] sections have \`confidence=pending\` or are empty → STOP with: "Constitution has incomplete required sections. Run /syn:sync to complete them." (list which sections are incomplete)
+- If the file exists but the [INV] or [WFL] sections have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution has incomplete required sections. Run /syn:sync to complete them." (list which sections)
 - If valid → read the [QR] and [INV] sections for context. Use [INV] to filter questions in Step 1.3 — do NOT ask about things already established in [INV].
 
 ---
@@ -123,7 +123,7 @@ export function getSynClarifyCommandTemplate(): CommandTemplate {
 Read \`synspec/constitution.md\`.
 
 - If the file does not exist → STOP with: "Constitution not found. Run /syn:sync first — all workflow commands depend on it to enforce project rules."
-- If the file exists but [INV] or [WFL] sections have \`confidence=pending\` or are empty → STOP with: "Constitution has incomplete required sections. Run /syn:sync to complete them." (list which sections)
+- If the file exists but [INV] or [WFL] sections have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution has incomplete required sections. Run /syn:sync to complete them." (list which sections)
 - If valid → read [QR] and [INV] sections for context. Use [INV] to filter questions in Step 1.3 — do NOT ask about things already established in [INV].
 
 ---

@@ -15,7 +15,7 @@ export function getSynProposeSkillTemplate(): SkillTemplate {
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first to establish project rules before creating a change proposal."
-- If \`[INV]\` or \`[WFL]\` sections have \`confidence=pending\` or are empty → STOP with the list of pending sections.
+- If \`[INV]\` or \`[WFL]\` sections have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution [TAG] section is empty. Run /syn:sync to complete it." (list which sections)
 - If valid → read [QR], [INV], [BND], [WFL]. Use them to inform the proposal: scope decisions must not violate [INV], structure should align with [BND], delivery approach should match [WFL].
 
 ---
@@ -27,7 +27,7 @@ I'll create a change with artifacts:
 - design.md (how)
 - tasks.md (implementation steps)
 
-When ready to refine, run /syn:clarify — or skip to implementation with /syn:apply
+After artifacts are created, run /syn:clarify to review and refine before implementing.
 
 ---
 
@@ -99,7 +99,7 @@ After completing all artifacts, summarize:
 - Change name and location
 - List of artifacts created with brief descriptions
 - What's ready: "All artifacts created! Ready for refinement."
-- Prompt: "Run \`/syn:clarify\` to refine the artifacts, or \`/syn:apply\` to start implementation."
+- Prompt: "Run \`/syn:clarify\` next — it reviews the artifacts for gaps and inconsistencies before implementation. (Only skip to \`/syn:apply\` if you are confident the artifacts need no refinement.)"
 
 **Artifact Creation Guidelines**
 
@@ -132,7 +132,7 @@ export function getSynProposeCommandTemplate(): CommandTemplate {
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first before creating a change proposal."
-- If \`[INV]\` or \`[WFL]\` have \`confidence=pending\` or are empty → STOP with pending sections.
+- If \`[INV]\` or \`[WFL]\` have no \`**INV-NNN**\` / \`**WFL-NNN**\` items → STOP with: "Constitution [TAG] section is empty. Run /syn:sync to complete it."
 - If valid → read [QR], [INV], [BND], [WFL] to inform proposal scope and constraints.
 
 ---
@@ -144,7 +144,7 @@ I'll create a change with artifacts:
 - design.md (how)
 - tasks.md (implementation steps)
 
-When ready to refine, run /syn:clarify — or skip to implementation with /syn:apply
+After artifacts are created, run /syn:clarify to review and refine before implementing.
 
 ---
 
@@ -216,7 +216,7 @@ After completing all artifacts, summarize:
 - Change name and location
 - List of artifacts created with brief descriptions
 - What's ready: "All artifacts created! Ready for refinement."
-- Prompt: "Run \`/syn:clarify\` to refine the artifacts, or \`/syn:apply\` to start implementation."
+- Prompt: "Run \`/syn:clarify\` next — it reviews the artifacts for gaps and inconsistencies before implementation. (Only skip to \`/syn:apply\` if you are confident the artifacts need no refinement.)"
 
 **Artifact Creation Guidelines**
 

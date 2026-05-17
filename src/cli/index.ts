@@ -431,4 +431,21 @@ newCmd
     }
   });
 
+// Patch command group
+const patchCmd = program.command('patch').description('Apply patches to synarcx state files');
+
+patchCmd
+  .command('constitution')
+  .description('Apply a JSON patch to synspec/constitution.md from synspec/.constitution-patch.json')
+  .action(async () => {
+    try {
+      const { patchConstitutionCommand } = await import('../commands/constitution.js');
+      await patchConstitutionCommand();
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 program.parse();

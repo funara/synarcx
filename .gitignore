@@ -170,3 +170,4 @@ opencode.json
 # personal spec update
 openspec/
 synspec/
+synspec/.constitution-patch.json

@@ -2,7 +2,7 @@ import ora from 'ora';
 import path from 'path';
 import { Validator } from '../core/validation/validator.js';
 import { isInteractive, resolveNoInteractive } from '../utils/interactive.js';
-import { getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
+import { getActiveChangeIds, getSpecIds } from '../core/item-discovery.js';
 import { nearestMatches } from '../utils/match.js';
 import { SYNSPEC_DIR_NAME } from '../core/config.js';
 

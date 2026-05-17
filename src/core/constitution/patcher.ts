@@ -1,175 +1,151 @@
 import { readFileSync, writeFileSync, renameSync } from 'fs';
-import path from 'path';
-import { parseConstitution, getSection, extractDesignDecisions } from './parser.js';
-import { computeFingerprint } from '../templates/constitution-template.js';
+import { parseConstitution, getSection } from './parser.js';
+import { SECTION_HEADER_RE, ITEM_RE, nextId, computeFingerprint } from './format.js';
 
-export interface DecisionPatch {
-  title: string;
-  decision: string;
-  rationale: string;
-  source: string;
-}
-
-export interface InvariantConfidencePatch {
-  id: string;
-  newConfidence: 'explicit';
-  source: string;
-}
-
-export interface ExceptionPatch {
-  ref: string;
-  exception: string;
-  justification: string;
-}
+export type PatchEntry =
+  | { type: 'decision'; decision: string; rationale: string; source: string }
+  | { type: 'exception'; ref: string; exception: string };
 
 export interface ConstitutionPatch {
-  decisions?: DecisionPatch[];
-  invariantUpgrades?: InvariantConfidencePatch[];
-  exceptions?: ExceptionPatch[];
+  patches: PatchEntry[];
 }
 
 export interface PatchResult {
   decisionsAdded: number;
-  invariantsConfirmed: number;
+  decisionsSkipped: number;
   exceptionsAdded: number;
+  versionBefore: number;
+  versionAfter: number;
+}
+
+function findSectionHeaderIdx(lines: string[], tag: string): number {
+  const upperTag = tag.toUpperCase();
+  return lines.findIndex((line) => {
+    const m = line.match(SECTION_HEADER_RE);
+    return m && m[1]!.toUpperCase() === upperTag;
+  });
+}
+
+function collectSectionItems(lines: string[], headerIdx: number, tag: string): string[] {
+  const prefix = tag.toUpperCase();
+  const idRe = new RegExp(`^\\*\\*${prefix}-\\d+\\*\\* —`);
+  const items: string[] = [];
+  for (let i = headerIdx + 1; i < lines.length; i++) {
+    if (SECTION_HEADER_RE.test(lines[i]!)) break;
+    if (idRe.test(lines[i]!)) items.push(lines[i]!);
+  }
+  return items;
+}
+
+function findLastItemIdx(lines: string[], headerIdx: number, tag: string): number {
+  const prefix = tag.toUpperCase();
+  const idRe = new RegExp(`^\\*\\*${prefix}-\\d+\\*\\* —`);
+  let lastIdx = -1;
+  for (let i = headerIdx + 1; i < lines.length; i++) {
+    if (SECTION_HEADER_RE.test(lines[i]!)) break;
+    if (idRe.test(lines[i]!)) lastIdx = i;
+  }
+  return lastIdx;
+}
+
+function applyDecisionEntry(
+  lines: string[],
+  decision: string,
+): [lines: string[], added: boolean] {
+  const headerIdx = findSectionHeaderIdx(lines, 'dec');
+  const existingItems = headerIdx >= 0 ? collectSectionItems(lines, headerIdx, 'dec') : [];
+
+  const prefix60 = decision.slice(0, 60);
+  if (existingItems.some((item) => item.includes(prefix60))) {
+    return [lines, false];
+  }
+
+  const newId = nextId('dec', existingItems);
+  const newItem = `**${newId}** — ${decision}`;
+  const newLines = [...lines];
+
+  if (headerIdx < 0) {
+    newLines.push('', '## [DEC] Decisions', '', newItem);
+  } else {
+    const lastItemIdx = findLastItemIdx(newLines, headerIdx, 'dec');
+    if (lastItemIdx < 0) {
+      newLines.splice(headerIdx + 1, 0, '', newItem);
+    } else {
+      newLines.splice(lastItemIdx + 1, 0, '', newItem);
+    }
+  }
+
+  return [newLines, true];
+}
+
+function applyExceptionEntry(lines: string[], ref: string, exception: string): string[] {
+  const headerIdx = findSectionHeaderIdx(lines, 'exc');
+  const existingItems = headerIdx >= 0 ? collectSectionItems(lines, headerIdx, 'exc') : [];
+
+  const newId = nextId('exc', existingItems);
+  const newItem = `**${newId}** — Exception to ${ref}: ${exception}`;
+  const newLines = [...lines];
+
+  if (headerIdx < 0) {
+    newLines.push('', '## [EXC] Exclusions', '', newItem);
+  } else {
+    const lastItemIdx = findLastItemIdx(newLines, headerIdx, 'exc');
+    if (lastItemIdx < 0) {
+      newLines.splice(headerIdx + 1, 0, '', newItem);
+    } else {
+      newLines.splice(lastItemIdx + 1, 0, '', newItem);
+    }
+  }
+
+  return newLines;
 }
 
 export function applyPatch(constitutionPath: string, patch: ConstitutionPatch): PatchResult {
   const content = readFileSync(constitutionPath, 'utf-8');
   const parsed = parseConstitution(content);
-  const result: PatchResult = { decisionsAdded: 0, invariantsConfirmed: 0, exceptionsAdded: 0 };
 
-  if (!parsed.frontmatter) return result;
-
-  let updated = content;
-
-  // Apply decision patches
-  if (patch.decisions?.length) {
-    const decSection = getSection(parsed, 'dec');
-    const existing = decSection?.items.join('\n') ?? '';
-    const decEntries: string[] = [];
-
-    // Find highest existing DEC ID
-    let maxId = 0;
-    const idMatches = existing.matchAll(/DEC-(\d+)/g);
-    for (const m of idMatches) {
-      const n = parseInt(m[1]!, 10);
-      if (n > maxId) maxId = n;
-    }
-
-    for (const d of patch.decisions) {
-      // Deduplicate by decision text
-      if (existing.includes(d.decision.slice(0, 40))) continue;
-      maxId++;
-      const id = `DEC-${String(maxId).padStart(3, '0')}`;
-      const date = new Date().toISOString().split('T')[0]!;
-      decEntries.push(`| ${id} | ${date} | ${d.decision} | ${d.rationale} | ${d.source} |`);
-      result.decisionsAdded++;
-    }
-
-    if (decEntries.length > 0) {
-      const newRows = decEntries.join('\n');
-      const tableHeader = '| ID | Date | Decision | Rationale | Source |';
-      const tableSep = '|-----|------|----------|-----------|--------|';
-
-      if (existing.includes(tableHeader)) {
-        updated = updated.replace(
-          /(\|\s*ID\s*\|[^\n]+\n\|[-| ]+\|)([^\n]|\n(?!\n<!-- SECTION))*?(?=\n<!-- SECTION|$)/s,
-          (m) => m.trimEnd() + '\n' + newRows,
-        );
-      } else {
-        const noneComment = '<!-- none yet -->';
-        const replacement = `${tableHeader}\n${tableSep}\n${newRows}`;
-        updated = updated.replace(
-          /<!-- SECTION:dec[^>]*-->\n## \[DEC\][^\n]*\n[^\n]*\n([^\n]*\n)*?(?=<!-- SECTION:|$)/s,
-          (m) => m.replace(noneComment, replacement).replace('<!-- none yet -->', replacement),
-        );
-      }
-    }
+  if (!parsed.frontmatter) {
+    return { decisionsAdded: 0, decisionsSkipped: 0, exceptionsAdded: 0, versionBefore: 0, versionAfter: 0 };
   }
 
-  // Apply invariant confidence upgrades
-  if (patch.invariantUpgrades?.length) {
-    for (const upgrade of patch.invariantUpgrades) {
-      const idPattern = new RegExp(`(\\|\\s*${upgrade.id}\\s*\\|[^|]*\\|[^|]*)\\bguessed\\b|\\binferred\\b`);
-      if (idPattern.test(updated)) {
-        updated = updated.replace(idPattern, (_m, p1) => `${p1}${upgrade.newConfidence}`);
-        result.invariantsConfirmed++;
-      }
-    }
-  }
+  const versionBefore = parsed.frontmatter.version ?? 0;
+  const result: PatchResult = {
+    decisionsAdded: 0,
+    decisionsSkipped: 0,
+    exceptionsAdded: 0,
+    versionBefore,
+    versionAfter: versionBefore + 1,
+  };
 
-  // Apply exception patches
-  if (patch.exceptions?.length) {
-    const excSection = getSection(parsed, 'exc');
-    const existing = excSection?.items.join('\n') ?? '';
-    const excEntries: string[] = [];
+  let lines = content.split('\n');
 
-    for (const e of patch.exceptions) {
-      if (existing.includes(e.exception.slice(0, 30))) continue;
-      excEntries.push(`| ${e.ref} | ${e.exception} | ${e.justification} | — |`);
+  for (const entry of patch.patches) {
+    if (entry.type === 'decision') {
+      const [newLines, added] = applyDecisionEntry(lines, entry.decision);
+      lines = newLines;
+      if (added) result.decisionsAdded++;
+      else result.decisionsSkipped++;
+    } else if (entry.type === 'exception') {
+      lines = applyExceptionEntry(lines, entry.ref, entry.exception);
       result.exceptionsAdded++;
     }
-
-    if (excEntries.length > 0) {
-      const newRows = excEntries.join('\n');
-      updated = updated.replace(
-        /(<!-- SECTION:exc[^>]*-->\n## \[EXC\][^\n]*\n[^\n]*\n)([\s\S]*?)(?=\n<!-- SECTION:|$)/,
-        (_m, header, body) => {
-          const trimmed = body.trimEnd();
-          return trimmed.includes('<!-- none yet -->')
-            ? `${header}| Ref | Exception | Justification | Expires |\n|-----|-----------|---------------|---------||\n${newRows}\n`
-            : `${header}${trimmed}\n${newRows}\n`;
-        },
-      );
-    }
   }
 
-  // Increment version and recompute fingerprint
-  const invSection = getSection(parsed, 'inv');
-  const decSection = getSection(parsed, 'dec');
-  const invItems = invSection?.items ?? [];
-  const decItems = decSection?.items ?? [];
+  const updatedContent = lines.join('\n');
+  const reparsed = parseConstitution(updatedContent);
+  const invItems = getSection(reparsed, 'inv')?.items ?? [];
+  const decItems = getSection(reparsed, 'dec')?.items ?? [];
   const newFingerprint = computeFingerprint(invItems, decItems);
-  const newVersion = (parsed.frontmatter.version ?? 0) + 1;
   const today = new Date().toISOString().split('T')[0]!;
 
-  updated = updated
-    .replace(/^version:\s*\d+/m, `version: ${newVersion}`)
+  const final = updatedContent
+    .replace(/^version:\s*\d+/m, `version: ${result.versionAfter}`)
     .replace(/^fingerprint:\s*\S+/m, `fingerprint: ${newFingerprint}`)
     .replace(/^last_sync:\s*\S+/m, `last_sync: ${today}`);
 
-  // Atomic write
-  const tmpPath = constitutionPath.replace(/\.md$/, '.tmp.md');
-  writeFileSync(tmpPath, updated, 'utf-8');
+  const tmpPath = `${constitutionPath}.tmp`;
+  writeFileSync(tmpPath, final, 'utf-8');
   renameSync(tmpPath, constitutionPath);
 
   return result;
-}
-
-export function extractPatchFromChange(
-  designContent: string,
-  _proposalContent: string,
-  _tasksContent: string,
-): ConstitutionPatch {
-  const decisions = extractDesignDecisions(designContent).map((d) => ({
-    ...d,
-    source: 'archive',
-  }));
-
-  // Exception extraction: look for "Exception to INV-" pattern in tasks/design
-  const excPattern = /Exception to (INV-\d+)[:\s]+([^\n.]+)/g;
-  const exceptions: ExceptionPatch[] = [];
-  for (const content of [designContent, _tasksContent]) {
-    let m;
-    while ((m = excPattern.exec(content)) !== null) {
-      exceptions.push({
-        ref: m[1]!,
-        exception: m[2]!.trim(),
-        justification: 'recorded during implementation',
-      });
-    }
-  }
-
-  return { decisions, exceptions };
 }

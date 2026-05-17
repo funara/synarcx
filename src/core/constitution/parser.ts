@@ -1,9 +1,10 @@
 import { parse as parseYaml } from 'yaml';
+import { SECTION_HEADER_RE, ITEM_RE } from './format.js';
 
 export interface ConstitutionSection {
   tag: string;
-  confidence: 'explicit' | 'inferred' | 'guessed' | 'pending';
   items: string[];
+  body: string[];
 }
 
 export interface ParsedConstitution {
@@ -23,15 +24,11 @@ export interface DesignDecision {
   rationale: string;
 }
 
-const SECTION_MARKER_RE = /^<!--\s*SECTION:(\w+)\s+confidence=(\w+)\s*-->/;
-const CONFIDENCE_VALUES = new Set(['explicit', 'inferred', 'guessed', 'pending']);
-
 export function parseConstitution(content: string): ParsedConstitution {
   const lines = content.split('\n');
   let frontmatter: ParsedConstitution['frontmatter'] = null;
   let i = 0;
 
-  // Parse YAML frontmatter
   if (lines[0]?.trim() === '---') {
     const endIdx = lines.indexOf('---', 1);
     if (endIdx > 0) {
@@ -48,70 +45,48 @@ export function parseConstitution(content: string): ParsedConstitution {
     }
   }
 
-  const sections: ConstitutionSection[] = [];
-  let currentSection: ConstitutionSection | null = null;
-  let currentItems: string[] = [];
+  const bodyLines = lines.slice(i);
+  const sectionStarts: { index: number; tag: string }[] = [];
 
-  const flushSection = () => {
-    if (currentSection) {
-      currentSection.items = currentItems.filter((l) => l.trim() && !l.trim().startsWith('<!--'));
-      sections.push(currentSection);
-      currentSection = null;
-      currentItems = [];
-    }
-  };
-
-  for (; i < lines.length; i++) {
-    const line = lines[i]!;
-    const markerMatch = line.match(SECTION_MARKER_RE);
-    if (markerMatch) {
-      flushSection();
-      const tag = markerMatch[1]!;
-      const conf = markerMatch[2]!;
-      const confidence = CONFIDENCE_VALUES.has(conf)
-        ? (conf as ConstitutionSection['confidence'])
-        : 'pending';
-      currentSection = { tag, confidence, items: [] };
-      currentItems = [];
-    } else if (currentSection) {
-      // Skip the ## [TAG] heading line
-      if (!line.match(/^##\s+\[/)) {
-        currentItems.push(line);
-      }
+  for (let j = 0; j < bodyLines.length; j++) {
+    const m = bodyLines[j]!.match(SECTION_HEADER_RE);
+    if (m) {
+      sectionStarts.push({ index: j, tag: m[1]!.toLowerCase() });
     }
   }
-  flushSection();
+
+  const sections: ConstitutionSection[] = [];
+  for (let k = 0; k < sectionStarts.length; k++) {
+    const start = sectionStarts[k]!;
+    const end = sectionStarts[k + 1]?.index ?? bodyLines.length;
+    const sectionLines = bodyLines.slice(start.index + 1, end);
+
+    const items: string[] = [];
+    const body: string[] = [];
+
+    for (const line of sectionLines) {
+      if (ITEM_RE.test(line)) {
+        items.push(line);
+      } else if (line.trim()) {
+        body.push(line);
+      }
+    }
+
+    sections.push({ tag: start.tag, items, body });
+  }
 
   return { frontmatter, sections };
 }
 
 export function getSection(parsed: ParsedConstitution, tag: string): ConstitutionSection | undefined {
-  return parsed.sections.find((s) => s.tag === tag);
+  return parsed.sections.find((s) => s.tag === tag.toLowerCase());
 }
 
-export function hasPendingRequired(parsed: ParsedConstitution): string[] {
-  const required = ['inv', 'wfl'];
-  const pending: string[] = [];
-  for (const tag of required) {
-    const section = getSection(parsed, tag);
-    if (!section || section.confidence === 'pending' || section.items.length === 0) {
-      pending.push(`[${tag.toUpperCase()}]`);
-    }
-  }
-  return pending;
-}
-
-/**
- * Strictly extract design decisions matching the synarcx design.md template format:
- * ### D<N>: <title>
- * **Decision**: <text>
- * **Rationale**: <text>
- */
 export function extractDesignDecisions(designContent: string): DesignDecision[] {
   const decisions: DesignDecision[] = [];
   const lines = designContent.split('\n');
-
   let i = 0;
+
   while (i < lines.length) {
     const headingMatch = lines[i]?.match(/^###\s+D(\d+):\s+(.+)$/);
     if (headingMatch) {
@@ -120,7 +95,6 @@ export function extractDesignDecisions(designContent: string): DesignDecision[] 
       let rationale = '';
       let j = i + 1;
 
-      // Scan next lines for **Decision**: and **Rationale**: within same block
       while (j < lines.length && !lines[j]!.match(/^###\s+D\d+:/)) {
         const decMatch = lines[j]!.match(/^\*\*Decision\*\*:\s*(.+)$/);
         const ratMatch = lines[j]!.match(/^\*\*Rationale\*\*:\s*(.+)$/);

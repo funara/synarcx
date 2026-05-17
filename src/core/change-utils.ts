@@ -1,8 +1,8 @@
 import path from 'path';
-import { FileSystemUtils } from './file-system.js';
+import { FileSystemUtils } from '../utils/file-system.js';
 import { writeChangeMetadata, validateSchemaName } from './change-metadata.js';
-import { readProjectConfig } from '../core/project-config.js';
-import { SYNSPEC_DIR_NAME } from '../core/config.js';
+import { readProjectConfig } from './project-config.js';
+import { SYNSPEC_DIR_NAME } from './config.js';
 
 const DEFAULT_SCHEMA = 'synarcx';
 
