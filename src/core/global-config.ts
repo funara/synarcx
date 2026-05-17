@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { GlobalConfigSchema, GlobalConfigType, DEFAULT_CONFIG } from './config-schema.js';
 
 // Constants
 export const GLOBAL_CONFIG_DIR_NAME = 'synarcx';
@@ -11,19 +12,10 @@ export const GLOBAL_DATA_DIR_NAME = 'synarcx';
 export type Profile = 'core' | 'custom';
 export type Delivery = 'both' | 'skills' | 'commands';
 
-// TypeScript interfaces
-export interface GlobalConfig {
-  featureFlags?: Record<string, boolean>;
-  profile?: Profile;
-  delivery?: Delivery;
-  workflows?: string[];
-}
+// GlobalConfig is an alias for the Zod-inferred type — single source of truth in config-schema.ts
+export type GlobalConfig = GlobalConfigType;
 
-const DEFAULT_CONFIG: GlobalConfig = {
-  featureFlags: {},
-  profile: 'core',
-  delivery: 'both',
-};
+export { DEFAULT_CONFIG };
 
 /**
  * Gets the global configuration directory path following XDG Base Directory Specification.
@@ -111,7 +103,7 @@ export function getGlobalConfigPath(): string {
 /**
  * Loads the global configuration from disk.
  * Returns default configuration if file doesn't exist or is invalid.
- * Merges loaded config with defaults to ensure new fields are available.
+ * Uses GlobalConfigSchema (with passthrough) for validation and defaults.
  */
 export function getGlobalConfig(): GlobalConfig {
   const configPath = getGlobalConfigPath();
@@ -123,29 +115,9 @@ export function getGlobalConfig(): GlobalConfig {
 
     const content = fs.readFileSync(configPath, 'utf-8');
     const parsed = JSON.parse(content);
-
-    // Merge with defaults (loaded values take precedence)
-    const merged: GlobalConfig = {
-      ...DEFAULT_CONFIG,
-      ...parsed,
-      // Deep merge featureFlags
-      featureFlags: {
-        ...DEFAULT_CONFIG.featureFlags,
-        ...(parsed.featureFlags || {})
-      }
-    };
-
-    // Schema evolution: apply defaults for new fields if not present in loaded config
-    if (parsed.profile === undefined) {
-      merged.profile = DEFAULT_CONFIG.profile;
-    }
-    if (parsed.delivery === undefined) {
-      merged.delivery = DEFAULT_CONFIG.delivery;
-    }
-
-    return merged;
+    const result = GlobalConfigSchema.safeParse(parsed);
+    return result.success ? result.data : { ...DEFAULT_CONFIG };
   } catch (error) {
-    // Log warning for parse errors, but not for missing files
     if (error instanceof SyntaxError) {
       console.error(`Warning: Invalid JSON in ${configPath}, using defaults`);
     }

@@ -243,7 +243,7 @@ const SharedStateSchema = z.object({
   version: z.literal(1),
   name: z.string(),
   links: z.record(z.string(), PlainObjectSchema),
-}).strict();
+}).passthrough();
 
 const LocalStateSchema = z.object({
   version: z.literal(1),
@@ -253,14 +253,14 @@ const LocalStateSchema = z.object({
       kind: z.enum(['agent', 'editor']),
       id: z.string(),
     })
-    .strict()
+    .passthrough()
     .optional(),
-}).strict();
+}).passthrough();
 
 const RegistryStateSchema = z.object({
   version: z.literal(1),
   workspaces: z.record(z.string(), z.string()),
-}).strict();
+}).passthrough();
 
 function formatZodIssues(error: z.ZodError): string {
   return error.issues

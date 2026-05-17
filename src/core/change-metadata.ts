@@ -50,12 +50,13 @@ export function validateSchemaName(
  * @param projectRoot - Optional project root for project-local schema resolution
  * @throws ChangeMetadataError if validation fails or write fails
  */
-export function writeChangeMetadata(
+export async function writeChangeMetadata(
   changeDir: string,
   metadata: ChangeMetadata,
   projectRoot?: string
-): void {
+): Promise<void> {
   const metaPath = path.join(changeDir, METADATA_FILENAME);
+  const tmpPath = metaPath + '.tmp';
 
   // Validate schema exists
   validateSchemaName(metadata.schema, projectRoot);
@@ -69,10 +70,11 @@ export function writeChangeMetadata(
     );
   }
 
-  // Write YAML file
+  // Atomic write: write to .tmp then rename (prevents partial writes on crash)
   const content = yaml.stringify(parseResult.data);
   try {
-    fs.writeFileSync(metaPath, content, 'utf-8');
+    await fs.promises.writeFile(tmpPath, content, 'utf-8');
+    await fs.promises.rename(tmpPath, metaPath);
   } catch (err) {
     const ioError = err instanceof Error ? err : new Error(String(err));
     throw new ChangeMetadataError(

@@ -11,7 +11,6 @@ import { applyPatch } from '../src/core/constitution/patcher.js'
 // ─── shared fixture ──────────────────────────────────────────────────────────
 
 const MINIMAL_CONSTITUTION = `---
-schema: synarcx/constitution@0.4
 version: 1
 last_sync: 2026-01-01
 fingerprint: 00000000
@@ -55,7 +54,6 @@ mode: brownfield
 
 // Constitution with no DEC or EXC sections
 const CONSTITUTION_NO_DEC_EXC = `---
-schema: synarcx/constitution@0.4
 version: 1
 last_sync: 2026-01-01
 fingerprint: 00000000
@@ -75,7 +73,6 @@ mode: brownfield
 
 // Constitution with empty required sections (headers present but no items)
 const CONSTITUTION_EMPTY_REQUIRED = `---
-schema: synarcx/constitution@0.4
 version: 1
 last_sync: 2026-01-01
 fingerprint: 00000000
@@ -196,7 +193,6 @@ describe('parseConstitution', () => {
   it('parses frontmatter correctly', () => {
     const result = parseConstitution(MINIMAL_CONSTITUTION)
     expect(result.frontmatter).not.toBeNull()
-    expect(result.frontmatter?.schema).toBe('synarcx/constitution@0.4')
     expect(result.frontmatter?.version).toBe(1)
     expect(result.frontmatter?.mode).toBe('brownfield')
   })

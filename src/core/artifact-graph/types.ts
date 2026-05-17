@@ -8,7 +8,7 @@ export const ArtifactSchema = z.object({
   template: z.string().min(1, { error: 'template field is required' }),
   instruction: z.string().optional(),
   requires: z.array(z.string()).default([]),
-});
+}).passthrough();
 
 // Apply phase configuration for schema-aware apply instructions
 export const ApplyPhaseSchema = z.object({
@@ -28,7 +28,7 @@ export const SchemaYamlSchema = z.object({
   artifacts: z.array(ArtifactSchema).min(1, { error: 'At least one artifact required' }),
   // Optional apply phase configuration (for schema-aware apply instructions)
   apply: ApplyPhaseSchema.optional(),
-});
+}).passthrough();
 
 // Derived TypeScript types
 export type Artifact = z.infer<typeof ArtifactSchema>;
@@ -49,7 +49,7 @@ export const ChangeMetadataSchema = z.object({
       message: 'created must be YYYY-MM-DD format',
     })
     .optional(),
-});
+}).passthrough();
 
 export type ChangeMetadata = z.infer<typeof ChangeMetadataSchema>;
 

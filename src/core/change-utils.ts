@@ -152,7 +152,7 @@ export async function createChange(
 
   // Write metadata file with schema and creation date
   const today = new Date().toISOString().split('T')[0];
-  writeChangeMetadata(changeDir, {
+  await writeChangeMetadata(changeDir, {
     schema: schemaName,
     created: today,
   }, projectRoot);
