@@ -16,8 +16,8 @@ export function nextId(tag: string, existingItems: string[]): string {
   return `${prefix}-${String(max + 1).padStart(3, '0')}`;
 }
 
-export function computeFingerprint(invItems: string[], decItems: string[]): string {
-  const str = [...invItems, ...decItems].join('\n');
+export function computeFingerprint(invItems: string[], decItems: string[], bndItems: string[] = []): string {
+  const str = [...invItems, ...decItems, ...bndItems].join('\n');
   let h = 5381;
   for (let i = 0; i < str.length; i++) {
     h = ((h << 5) + h) ^ str.charCodeAt(i);

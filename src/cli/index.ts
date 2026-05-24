@@ -233,6 +233,23 @@ program
     }
   });
 
+// Top-level sync command
+program
+  .command('sync')
+  .description('Check synchronization state, process pending spec syncs, or validate constitution')
+  .option('--check', 'Validate constitution and verify no pending syncs exist')
+  .option('--process-pending', 'Clear/mark all pending syncs as processed')
+  .action(async (options?: { check?: boolean; processPending?: boolean }) => {
+    try {
+      const { syncCommand } = await import('../commands/sync.js');
+      await syncCommand(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 // Top-level show command
 program
   .command('show [item-name]')
@@ -437,10 +454,11 @@ const patchCmd = program.command('patch').description('Apply patches to synarcx 
 patchCmd
   .command('constitution')
   .description('Apply a JSON patch to synspec/constitution.md from synspec/.constitution-patch.json')
-  .action(async () => {
+  .option('--dry-run', 'Validate and preview the patch without writing or deleting')
+  .action(async (options?: { dryRun?: boolean }) => {
     try {
       const { patchConstitutionCommand } = await import('../commands/constitution.js');
-      await patchConstitutionCommand();
+      await patchConstitutionCommand({ dryRun: options?.dryRun });
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);

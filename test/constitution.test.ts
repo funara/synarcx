@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { SECTION_HEADER_RE, ITEM_RE, REQUIRED_SECTION_TAGS, nextId, computeFingerprint } from '../src/core/constitution/format.js'
-import { parseConstitution, getSection } from '../src/core/constitution/parser.js'
+import { parseConstitution, getSection, extractDesignDecisions } from '../src/core/constitution/parser.js'
 import { validateConstitution } from '../src/core/constitution/validator.js'
 import { applyPatch } from '../src/core/constitution/patcher.js'
 
@@ -407,5 +407,77 @@ describe('applyPatch', () => {
     // version increments even on empty patch, but content otherwise preserved
     expect(after).toContain('**DEC-001** — Use ESM only.')
     expect(after).toContain('**INV-001** — No breaking changes without a migration path.')
+  })
+
+  it('patches a constitution with missing version field by injecting it', () => {
+    const constitutionWithMissingVersion = `---
+last_sync: 2026-01-01
+fingerprint: 00000000
+mode: brownfield
+---
+
+## [INV] Invariants
+
+**INV-001** — rule
+`
+    const pathMissingVersion = writeConstitution(tmpDir, constitutionWithMissingVersion)
+    applyPatch(pathMissingVersion, {
+      patches: [{ type: 'decision', decision: 'Injected version test.', rationale: 'r', source: 's' }],
+    })
+    const content = readFileSync(pathMissingVersion, 'utf-8')
+    expect(content).toContain('version: 1')
+    expect(content).toContain('fingerprint:')
+    expect(content).toContain('last_sync:')
+  })
+
+  it('preserves custom sections during applyPatch', () => {
+    const constitutionWithCustomSection = `${MINIMAL_CONSTITUTION}
+## [MYSEC] My Custom Section
+
+Some custom text here.
+`
+    const pathCustom = writeConstitution(tmpDir, constitutionWithCustomSection)
+    applyPatch(pathCustom, {
+      patches: [{ type: 'decision', decision: 'Custom section preservation test.', rationale: 'r', source: 's' }],
+    })
+    const content = readFileSync(pathCustom, 'utf-8')
+    expect(content).toContain('## [MYSEC] My Custom Section')
+    expect(content).toContain('Some custom text here.')
+  })
+
+  it('applies large batch of decision patches', () => {
+    const patches = Array.from({ length: 25 }, (_, i) => ({
+      type: 'decision' as const,
+      decision: `Decision batch entry ${i + 1}`,
+      rationale: `Rationale ${i + 1}`,
+      source: 'test',
+    }))
+    applyPatch(constitutionPath, { patches })
+    const content = readFileSync(constitutionPath, 'utf-8')
+    expect(content).toContain('**DEC-002** — Decision batch entry 1')
+    expect(content).toContain('**DEC-026** — Decision batch entry 25')
+  })
+})
+
+describe('extractDesignDecisions alternative heading formats', () => {
+  it('extracts decisions with alternative headings like ### Decision 1 or ### Design Decision 1', () => {
+    const designContent = `
+### Decision 1: Use ESM
+**Decision**: Use ES modules.
+**Rationale**: Performance and typing.
+
+### Design Decision 2: Use Vitest
+**Decision**: Use vitest.
+**Rationale**: Fast test execution.
+
+### D3: Use PNPM
+**Decision**: Use PNPM.
+**Rationale**: Fast package manager.
+`
+    const decisions = extractDesignDecisions(designContent)
+    expect(decisions).toHaveLength(3)
+    expect(decisions[0]?.title).toBe('Use ESM')
+    expect(decisions[1]?.title).toBe('Use Vitest')
+    expect(decisions[2]?.title).toBe('Use PNPM')
   })
 })

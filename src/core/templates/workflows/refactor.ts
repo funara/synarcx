@@ -1,4 +1,4 @@
-﻿import type { SkillTemplate, CommandTemplate } from '../types.js';
+import type { SkillTemplate, CommandTemplate } from '../types.js';
 import { commandFromSkill } from '../types.js';
 
 export function getSynRefactorSkillTemplate(): SkillTemplate {
@@ -75,20 +75,18 @@ If any of these is true → flag as a **behavior contract violation** and sugges
 
 ## Hand-Off
 
-When the investigation reaches a clear conclusion, present findings and explicitly prompt:
+After presenting the refactoring plan under \`### Refactoring Plan\`, assess scope:
+- **Small refactor** (rename, move single file, extract function): recommend \`/syn:quick\`
+- **Structural refactor** (multi-module, dependency changes): recommend \`/syn:propose\`
 
-\`\`\`
-### Refactoring Plan
+Use the **AskUserQuestion tool** to let the user choose:
+> "How would you like to proceed?"
 
-**Current Shape**: <summary of current structure>
-**Target Shape**: <proposed structure>
-**Key Changes**: <list of structural moves>
-**Risks**: <potential issues>
+Options:
+- "Apply quick refactor (\`/syn:quick\`) — small, contained change"
+- "Create full proposal (\`/syn:propose\`) — structural, multi-file refactor"
 
-**Ready to formalize?** Run \`/syn:propose\` to create a change with these findings.
-\`\`\`
-
-Do NOT create any artifacts or start the pipeline. The user must explicitly run \`/syn:propose\`.`,
+Do NOT create any artifacts or start the pipeline. Wait for the user to pick.`,
     license: 'MIT',
     compatibility: 'Requires synarcx CLI.',
     metadata: { author: 'synarcx', version: '0.1' },
@@ -163,19 +161,17 @@ When artifacts are created, the analyze phase MUST check for behavior contract v
 
 ## Hand-Off
 
-When the investigation reaches a clear conclusion, present findings and explicitly prompt:
+After presenting the refactoring plan under \`### Refactoring Plan\`, assess scope:
+- **Small refactor** (rename, move single file, extract function): recommend \`/syn:quick\`
+- **Structural refactor** (multi-module, dependency changes): recommend \`/syn:propose\`
 
-\`\`\`
-### Refactoring Plan
+Use the **AskUserQuestion tool** to let the user choose:
+> "How would you like to proceed?"
 
-**Current Shape**: <summary of current structure>
-**Target Shape**: <proposed structure>
-**Key Changes**: <list of structural moves>
-**Risks**: <potential issues>
+Options:
+- "Apply quick refactor (\`/syn:quick\`) — small, contained change"
+- "Create full proposal (\`/syn:propose\`) — structural, multi-file refactor"
 
-**Ready to formalize?** Run \`/syn:propose\` to create a change with these findings.
-\`\`\`
-
-Do NOT create any artifacts or start the pipeline. The user must explicitly run \`/syn:propose\`.`
+Do NOT create any artifacts or start the pipeline. Wait for the user to pick.`
   })
 }

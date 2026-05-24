@@ -7,13 +7,23 @@ const PatchEntrySchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('decision'),
     decision: z.string(),
-    rationale: z.string(),
-    source: z.string(),
+    rationale: z.string().optional(),
+    source: z.string().optional(),
   }),
   z.object({
     type: z.literal('exception'),
     ref: z.string(),
     exception: z.string(),
+  }),
+  z.object({
+    type: z.literal('invariant'),
+    invariant: z.string(),
+    rationale: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('boundary'),
+    boundary: z.string(),
+    rationale: z.string().optional(),
   }),
 ]);
 
@@ -21,7 +31,7 @@ const ConstitutionPatchSchema = z.object({
   patches: z.array(PatchEntrySchema),
 });
 
-export async function patchConstitutionCommand(): Promise<void> {
+export async function patchConstitutionCommand(options?: { dryRun?: boolean }): Promise<void> {
   const cwd = process.cwd();
   const constitutionPath = path.join(cwd, 'synspec', 'constitution.md');
   const patchPath = path.join(cwd, 'synspec', '.constitution-patch.json');
@@ -59,12 +69,44 @@ export async function patchConstitutionCommand(): Promise<void> {
     process.exit(1);
   }
 
+  if (options?.dryRun) {
+    console.log('Dry run: Validating and previewing constitution patch...');
+    const tempPath = `${constitutionPath}.dryrun.tmp`;
+    try {
+      await fs.copyFile(constitutionPath, tempPath);
+      const result = applyPatch(tempPath, validation.data);
+      const original = await fs.readFile(constitutionPath, 'utf-8');
+      const modified = await fs.readFile(tempPath, 'utf-8');
+
+      console.log('\n--- Patch Preview ---');
+      const { decisionsAdded, exceptionsAdded, invariantsAdded, boundariesAdded, versionBefore, versionAfter } = result;
+      console.log(`Summary: +${decisionsAdded} decisions, +${exceptionsAdded} exceptions, +${invariantsAdded} invariants, +${boundariesAdded} boundaries`);
+      console.log(`Version: ${versionBefore} → ${versionAfter}`);
+
+      const origLines = original.split('\n');
+      const modLines = modified.split('\n');
+      console.log('\nAdded lines:');
+      for (const line of modLines) {
+        if (line.trim().startsWith('**') && !origLines.includes(line)) {
+          console.log(`  + ${line}`);
+        }
+      }
+      console.log('--- End of Preview ---\n');
+      console.log('Dry run completed. No files were modified.');
+    } finally {
+      try {
+        await fs.unlink(tempPath);
+      } catch {}
+    }
+    return;
+  }
+
   const result = applyPatch(constitutionPath, validation.data);
 
   await fs.unlink(patchPath);
 
-  const { decisionsAdded, exceptionsAdded, versionBefore, versionAfter } = result;
+  const { decisionsAdded, exceptionsAdded, invariantsAdded, boundariesAdded, versionBefore, versionAfter } = result;
   console.log(
-    `Constitution patched: +${decisionsAdded} decisions, +${exceptionsAdded} exceptions. version: ${versionBefore} → ${versionAfter}`,
+    `Constitution patched: +${decisionsAdded} decisions, +${exceptionsAdded} exceptions, +${invariantsAdded} invariants, +${boundariesAdded} boundaries. version: ${versionBefore} → ${versionAfter}`,
   );
 }

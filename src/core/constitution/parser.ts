@@ -9,7 +9,6 @@ export interface ConstitutionSection {
 
 export interface ParsedConstitution {
   frontmatter: {
-    schema: string;
     version: number;
     last_sync: string;
     fingerprint: string;
@@ -88,14 +87,14 @@ export function extractDesignDecisions(designContent: string): DesignDecision[] 
   let i = 0;
 
   while (i < lines.length) {
-    const headingMatch = lines[i]?.match(/^###\s+D(\d+):\s+(.+)$/);
+    const headingMatch = lines[i]?.match(/^###\s+(?:D|Decision|Design\s+Decision)\s*\d*:\s*(.+)$/i);
     if (headingMatch) {
-      const title = headingMatch[2]!.trim();
+      const title = headingMatch[1]!.trim();
       let decision = '';
       let rationale = '';
       let j = i + 1;
 
-      while (j < lines.length && !lines[j]!.match(/^###\s+D\d+:/)) {
+      while (j < lines.length && !lines[j]!.match(/^###\s+(?:D|Decision|Design\s+Decision)/i)) {
         const decMatch = lines[j]!.match(/^\*\*Decision\*\*:\s*(.+)$/);
         const ratMatch = lines[j]!.match(/^\*\*Rationale\*\*:\s*(.+)$/);
         if (decMatch) decision = decMatch[1]!.trim();
@@ -110,6 +109,10 @@ export function extractDesignDecisions(designContent: string): DesignDecision[] 
     } else {
       i++;
     }
+  }
+
+  if (decisions.length === 0 && designContent.trim().length > 0) {
+    console.warn('Warning: design.md content is non-empty, but no design decisions were extracted.');
   }
 
   return decisions;

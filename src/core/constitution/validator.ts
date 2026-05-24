@@ -4,6 +4,7 @@ export interface ConstitutionValidationResult {
   valid: boolean;
   missingRequired: string[];
   emptyRequired: string[];
+  missingFingerprint?: boolean;
 }
 
 export function validateConstitution(parsed: ParsedConstitution): ConstitutionValidationResult {
@@ -12,11 +13,13 @@ export function validateConstitution(parsed: ParsedConstitution): ConstitutionVa
       valid: false,
       missingRequired: ['[INV]', '[WFL]'],
       emptyRequired: [],
+      missingFingerprint: true,
     };
   }
 
   const missingRequired: string[] = [];
   const emptyRequired: string[] = [];
+  const missingFingerprint = parsed.frontmatter.fingerprint === undefined || parsed.frontmatter.fingerprint === null || String(parsed.frontmatter.fingerprint).trim() === '';
 
   for (const tag of ['inv', 'wfl']) {
     const section = getSection(parsed, tag);
@@ -28,8 +31,9 @@ export function validateConstitution(parsed: ParsedConstitution): ConstitutionVa
   }
 
   return {
-    valid: missingRequired.length === 0 && emptyRequired.length === 0,
+    valid: missingRequired.length === 0 && emptyRequired.length === 0 && !missingFingerprint,
     missingRequired,
     emptyRequired,
+    missingFingerprint,
   };
 }

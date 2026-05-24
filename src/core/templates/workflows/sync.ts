@@ -144,7 +144,7 @@ This stage MUST run. Do not skip it even if you believe all sections are fully i
 
 **GREENFIELD mode — Architect Interview:**
 
-Ask ALL 5 questions, one at a time, using the AskUserQuestion tool. Wait for each answer before asking the next.
+Ask ALL 5 questions, one at a time, using the AskUserQuestion tool. Wait for each answer before asking the next. Where possible, provide pre-generated multiple-choice options for each question (e.g., options for tech stack, layer boundaries, project scope). Always ensure a write-in option is available.
 
 1. "What is this system? Describe what it does in 1-2 sentences."
 2. "What problem does it solve or who is it for?"
@@ -176,7 +176,7 @@ Offer options: [Mark as Invariant] [Just Implementation] [Skip]
 - Drift signals: \`DFT-001\`, \`DFT-002\`, ...
 
 **Compute fingerprint:**
-Concatenate all \`[INV]\` item texts and all \`[DEC]\` item texts in section order (no separators). Apply djb2 hash: start with \`h = 5381\`; for each character code \`c\` in the string: \`h = ((h << 5) + h) ^ c\`; after all characters: \`result = (h >>> 0).toString(16).padStart(8, '0')\`.
+Concatenate all \`[INV]\` item texts, all \`[DEC]\` item texts, and all \`[BND]\` item texts in section order (no separators). Apply djb2 hash: start with \`h = 5381\`; for each character code \`c\` in the string: \`h = ((h << 5) + h) ^ c\`; after all characters: \`result = (h >>> 0).toString(16).padStart(8, '0')\`.
 
 **Assemble YAML frontmatter:**
 \`\`\`yaml
@@ -233,12 +233,15 @@ Write the full \`synspec/constitution.md\` file using this 8-section structure:
 \`\`\`
 
 **UPDATE mode:**
-- For each section, compare old content (read in Stage 2) to new content (assembled in Stages 3–5).
+- Compare old content (read in Stage 2) to new content (assembled in Stages 3–5) section by section.
 - Only rewrite sections that have changed. Preserve unchanged sections byte-for-byte.
+- Read old constitution → generate new sections → compare each section → only write sections that differ.
+- Preserve any user-added notes within existing items (lines that don't match \`ITEM_RE\`).
 - When rewriting the frontmatter, strip any \`schema:\` line if present (auto-clean for users upgrading from v0.4).
 - Write atomically: write to \`synspec/constitution.md.tmp\` first, then rename to \`synspec/constitution.md\`.
 - Increment the \`version\` field by 1.
-- Recompute the fingerprint from the new \`[INV]\` + \`[DEC]\` content.
+- Recompute the fingerprint from the new \`[INV]\` + \`[DEC]\` + \`[BND]\` content.
+- Self-check: After writing, re-read the file and verify the version incremented and fingerprint changed.
 
 **Before writing — self-validate the generated output:**
 1. Verify all 8 \`## [TAG]\` headers are present: \`[QR]\`, \`[INV]\`, \`[BND]\`, \`[DEC]\`, \`[DFT]\`, \`[WFL]\`, \`[EXC]\`, \`[OWN]\`.
@@ -349,7 +352,7 @@ Infer:
 
 Cannot skip. Must run regardless of inferred confidence.
 
-**GREENFIELD** — ask ALL 5, one at a time:
+**GREENFIELD** — ask ALL 5, one at a time using AskUserQuestion tool. Provide pre-generated answer options where possible (e.g. tech stack, scope options). Always ensure a write-in option is available:
 1. "What is this system? Describe what it does in 1-2 sentences."
 2. "What problem does it solve or who is it for?"
 3. "What is one rule about this system that must NEVER change, even as it grows?"
@@ -365,7 +368,7 @@ Cannot skip. Must run regardless of inferred confidence.
 ## Stage 5: Normalize
 
 - Assign stable IDs: \`INV-001\`, \`DEC-001\`, \`DFT-001\` (sequential, zero-padded to 3 digits).
-- Compute fingerprint: concatenate all \`[INV]\` + \`[DEC]\` item texts in order, apply djb2 (\`h=5381; h=((h<<5)+h)^c per char; (h>>>0).toString(16).padStart(8,'0')\`).
+- Compute fingerprint: concatenate all \`[INV]\` + \`[DEC]\` + \`[BND]\` item texts in order, apply djb2 (\`h=5381; h=((h<<5)+h)^c per char; (h>>>0).toString(16).padStart(8,'0')\`).
 - Assemble frontmatter: \`version\` (1 for new, increment for update), \`last_sync\` (YYYY-MM-DD), \`fingerprint\`, \`mode\`. Do NOT include a \`schema:\` field.
 - Write \`[QR]\` (≤60 tokens): primary layer rule, primary auth/security invariant, tech stack one-liner, mode + last_sync.
 
@@ -374,7 +377,7 @@ Cannot skip. Must run regardless of inferred confidence.
 ## Stage 6: Write
 
 - **First run (greenfield/brownfield)**: Write full \`synspec/constitution.md\` with all 8 sections: \`[QR]\`, \`[INV]\`, \`[BND]\`, \`[DEC]\`, \`[DFT]\`, \`[WFL]\`, \`[EXC]\`, \`[OWN]\`.
-- **UPDATE**: Compare old vs new per section. Only rewrite changed sections; preserve unchanged sections byte-for-byte. Strip any \`schema:\` line from the frontmatter if present (auto-clean for users upgrading from v0.4). Write atomically (.tmp + rename). Increment version. Recompute fingerprint.
+- **UPDATE**: Compare old vs new per section. Read old constitution → generate new sections → compare each section → only write sections that differ. Preserve unchanged sections byte-for-byte. Preserve any user-added notes within existing items (lines that don't match \`ITEM_RE\`). Strip any \`schema:\` line from the frontmatter if present. Write atomically (.tmp + rename). Increment version. Recompute fingerprint. After writing, re-read and verify version incremented and fingerprint changed.
 
 **Before writing — self-validate:** verify all 8 \`## [TAG]\` headers present, \`[INV]\` has at least one \`**INV-NNN** —\` item, \`[WFL]\` has at least one \`**WFL-NNN** —\` item. If not, regenerate the missing section before writing.
 

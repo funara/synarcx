@@ -50,10 +50,20 @@ Question categories:
 
 Do NOT ask about anything already established in the [INV] section of \`synspec/constitution.md\`.
 
-### Step 1.4: Ask questions interactively
-Use the **AskUserQuestion tool** (open-ended) to present each question.
+### Step 1.4: Ask questions interactively (pick-and-enter UX)
+
+For EACH question, use the **AskUserQuestion tool** with pre-generated answer options.
+
+Rules for question format:
+- **Preference/choice questions** (e.g., "Should this be sync or async?"): provide 2-4 specific options. A write-in option is automatically available.
+- **Scope questions** (e.g., "Should this include admin users?"): provide Yes/No/Partial options with context.
+- **Prioritization** (e.g., "Which edge case matters most?"): list the specific edge cases as options.
+- **Truly open-ended questions** (e.g., "Describe the expected user journey"): use open-ended format ONLY when no reasonable options can be pre-generated.
+
+Goal: The user should be able to answer most questions with a single click/selection, not by typing paragraphs.
+
 Present questions one at a time. Wait for each answer before moving to the next.
-Default maximum: 5 questions. If one or more critical unknowns remain after 5, present each remaining critical question with context and ask the user to confirm before continuing.
+Default maximum: 5 questions. If critical unknowns remain after 5, ask user to confirm before continuing.
 
 ### Step 1.5: Encode answers back into artifacts
 - Edit the relevant artifact in place (proposal.md, design.md, or specs)
@@ -144,8 +154,8 @@ Do NOT ask about anything already established in [INV].
 
 "Critical" = a hole that would produce broken or incorrect code if left unaddressed.
 
-### Step 1.4: Ask questions interactively
-One at a time. Wait for each answer. Max 5 questions. Ask about additional critical unknowns only with user confirmation.
+### Step 1.4: Ask questions interactively (pick-and-enter UX)
+Use the **AskUserQuestion tool** with pre-generated answer options (e.g., preference choices, scope options, yes/no with context). Present one at a time. Wait for each answer. Max 5 questions. Ask about additional critical unknowns only with user confirmation. Goal: single-click responses instead of typing.
 
 ### Step 1.5: Encode answers back into artifacts
 Edit proposal.md, design.md, or specs in place. Do NOT create new files. Show what changed and why.

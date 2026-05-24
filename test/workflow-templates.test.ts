@@ -242,8 +242,9 @@ describe('debug command behavior', () => {
     it('command template contains "do NOT start the pipeline"', () => {
       expect(getSynDebugCommandTemplate().content).toContain('do NOT start the pipeline')
     })
-    it('command template contains "must explicitly run /syn:propose"', () => {
-      expect(getSynDebugCommandTemplate().content).toContain('must explicitly run `/syn:propose`')
+    it('command template contains interactive AskUserQuestion choices', () => {
+      expect(getSynDebugCommandTemplate().content).toContain('AskUserQuestion tool')
+      expect(getSynDebugCommandTemplate().content).toContain('/syn:quick')
     })
   })
 
@@ -259,8 +260,9 @@ describe('refactor command behavior', () => {
     it('command template contains "Do NOT create any artifacts or start the pipeline"', () => {
       expect(getSynRefactorCommandTemplate().content).toContain('Do NOT create any artifacts or start the pipeline')
     })
-    it('command template contains "must explicitly run /syn:propose"', () => {
-      expect(getSynRefactorCommandTemplate().content).toContain('must explicitly run `/syn:propose`')
+    it('command template contains interactive AskUserQuestion choices', () => {
+      expect(getSynRefactorCommandTemplate().content).toContain('AskUserQuestion tool')
+      expect(getSynRefactorCommandTemplate().content).toContain('/syn:quick')
     })
   })
 

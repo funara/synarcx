@@ -1,4 +1,4 @@
-﻿import type { SkillTemplate, CommandTemplate } from '../types.js';
+import type { SkillTemplate, CommandTemplate } from '../types.js';
 import { commandFromSkill } from '../types.js';
 
 export function getSynDebugSkillTemplate(): SkillTemplate {
@@ -59,19 +59,20 @@ Use that context to understand what was intended vs. what went wrong.
 
 ## Output
 
-After completing the 3-phase investigation, present findings and prompt explicitly:
+After completing the 3-phase investigation, present findings under \`### Diagnosis\`.
 
-\`\`\`
-### Diagnosis
+Assess the fix complexity:
+- **Small fix** (single file, no new behavior, no design decisions): recommend \`/syn:quick\`
+- **Full change** (multi-file, new behavior, architectural): recommend \`/syn:propose\`
 
-**Root Cause**: <what was found>
-**Pattern**: <similar issues or novel>
-**Hypothesis**: <proposed fix approach>
+Use the **AskUserQuestion tool** to let the user choose:
+> "How would you like to proceed with the fix?"
 
-**Ready to formalize?** Run \`/syn:propose\` to create a change with these findings.
-\`\`\`
+Options:
+- "Apply quick fix (\`/syn:quick\`) — small, single-file fix"
+- "Create full proposal (\`/syn:propose\`) — multi-file or architectural fix"
 
-Do NOT create any artifacts, do NOT start the pipeline automatically. The user must explicitly run \`/syn:propose\` to formalize.`,
+Do NOT create any artifacts, do NOT start the pipeline automatically. Wait for the user to pick.`,
     license: 'MIT',
     compatibility: 'Requires synarcx CLI.',
     metadata: { author: 'synarcx', version: '0.4' },
@@ -137,18 +138,19 @@ Use that context to understand what was intended vs. what went wrong.
 
 ## Output
 
-After completing the 3-phase investigation, present findings and prompt explicitly:
+After completing the 3-phase investigation, present findings under \`### Diagnosis\`.
 
-\`\`\`
-### Diagnosis
+Assess the fix complexity:
+- **Small fix** (single file, no new behavior, no design decisions): recommend \`/syn:quick\`
+- **Full change** (multi-file, new behavior, architectural): recommend \`/syn:propose\`
 
-**Root Cause**: <what was found>
-**Pattern**: <similar issues or novel>
-**Hypothesis**: <proposed fix approach>
+Use the **AskUserQuestion tool** to let the user choose:
+> "How would you like to proceed with the fix?"
 
-**Ready to formalize?** Run \`/syn:propose\` to create a change with these findings.
-\`\`\`
+Options:
+- "Apply quick fix (\`/syn:quick\`) — small, single-file fix"
+- "Create full proposal (\`/syn:propose\`) — multi-file or architectural fix"
 
-Do NOT create any artifacts, do NOT start the pipeline automatically. The user must explicitly run \`/syn:propose\` to formalize.`
+Do NOT create any artifacts, do NOT start the pipeline automatically. Wait for the user to pick.`
   })
 }

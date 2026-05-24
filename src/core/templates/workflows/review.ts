@@ -78,52 +78,41 @@ Review a completed change — verify implementation, run sanity checks, and deci
    Typecheck: clean  ✓      (or "N errors" or "ERR — command crashed" or "skipped")
    \`\`\`
 
-   **Then a narrative paragraph** (context):
+   **Then a high-level narrative summary** (context):
+   Briefly summarize WHAT changed and WHY the AI made these changes.
 
-   "Change <name> completed N of N tasks across N files (+A -D). All N tests pass, lint is clean, type checking passes. No issues detected."
+   **Then a detailed file breakdown**:
+   List the impacted files (grouped by New, Modified, Removed), along with a short description of the changes in each file.
 
-   Or for failures: "Change <name> completed N of N tasks. N tests failed, lint found N errors. Review the findings below."
+7. **Present the fork** (MUST use AskUserQuestion tool — never present as text)
 
-7. **Present the fork**
+    **If ALL checks pass** (clean):
 
-   **If ALL checks pass** (clean):
+    Use the **AskUserQuestion tool** with these exact options:
+    > "All checks pass. What would you like to do?"
 
-    Present three options:
+    Options:
+    - "Archive this change (sync specs + patch constitution)"
+    - "Add more work to this change (scope-gated)"
+    - "Debug an issue found during review"
 
-    | Option | Label | What happens | Next |
-    |---|---|---|---|
-    | A | Archive now | AI moves change to archive/ with auto spec sync | Done (specs merged to main) |
-    | B | Add more work | AI reads proposal+design for scope boundary, checks scope gate | Scope check → update or route |
-    | C | Start a new change | AI suggests creating a fresh change | /syn:propose |
+    Wait for the user to pick. Do NOT proceed until the user selects an option.
 
-   **For option B (add more work)**: Use the scope gate protocol:
+    | Selection | What happens |
+    |---|---|
+    | Archive | Run Step 8 inline (archive with spec sync + constitution patch) |
+    | Add more work | Scope gate protocol → update artifacts → \`/syn:clarify\` → \`/syn:apply\` |
+    | Debug | Route to \`/syn:debug\` — user describes the issue to investigate |
 
-   1. Read \`proposal.md\` capabilities section and \`design.md\` goals/non-goals to establish scope boundary
-   2. Ask the user what additional work is needed
-   3. **IN SCOPE** (same capabilities, same concern, no non-goal violation):
-      - Update \`proposal.md\` if scope description needs widening
-      - Update spec with ADDED requirements
-      - Update \`design.md\` if new technical decisions
-      - Append unchecked tasks to \`tasks.md\`
-      - MUST run \`/syn:clarify\` then \`/syn:apply\` — no skipping refinement, no escape hatch for trivial changes
-   4. **OUT OF SCOPE** (new capability, different concern, violates non-goal):
-      - Inform user: "This is outside the current change's scope."
-      - Offer: "Archive current change first?" — YES archives with spec sync, NO leaves active
-      - Route: "Start a new change with \`/syn:propose\`"
+    **If issues found** (dirty):
 
-   **If any checks failed** (dirty):
+    Show findings list, then use **AskUserQuestion tool**:
+    > "Issues found. How would you like to proceed?"
 
-   Show each finding with context and route to the correct command:
-
-   | Finding | Route |
-   |---|---|
-   | Test failures | /syn:apply — fix implementation |
-   | Lint errors | /syn:apply — fix implementation |
-   | Artifact inconsistency | /syn:analyze — reconcile |
-   | Unclear requirement | /syn:clarify — refine |
-   | Incomplete artifacts | /syn:analyze — complete artifacts |
-
-   List ALL findings in a single output. Let the user decide which to address first.
+    Options:
+    - "Fix implementation issues (\`/syn:apply\`)"
+    - "Debug root cause (\`/syn:debug\`)"
+    - "Refine artifacts (\`/syn:clarify\`)"
 
    **Note**: /syn:quick bypasses review entirely. Quick is the low-risk fast path.
 
@@ -153,22 +142,34 @@ Review a completed change — verify implementation, run sanity checks, and deci
 
     f. **Constitution patch** (archive→constitution):
        - Read \`design.md\` and \`tasks.md\` from the archive directory
-       - Extract design decisions matching the strict format:
+       - Extract design decisions, invariants, and boundaries matching the format:
            \`\`\`
            ### D<N>: <title>
            **Decision**: <text>
            **Rationale**: <text>
+           \`\`\`
+           or:
+           \`\`\`
+           ### INV-NNN: <title>
+           **Invariant**: <text>
+           \`\`\`
+           or:
+           \`\`\`
+           ### BND-NNN: <title>
+           **Boundary**: <text>
            \`\`\`
        - Scan \`design.md\` and \`tasks.md\` for "Exception to INV-NNN:" patterns to collect exceptions
        - Write \`synspec/.constitution-patch.json\` in this format:
            \`\`\`json
            { "patches": [
              { "type": "decision", "decision": "...", "rationale": "...", "source": "archive" },
-             { "type": "exception", "ref": "INV-NNN", "exception": "..." }
+             { "type": "exception", "ref": "INV-NNN", "exception": "..." },
+             { "type": "invariant", "invariant": "...", "rationale": "..." },
+             { "type": "boundary", "boundary": "...", "rationale": "..." }
            ] }
            \`\`\`
        - Call \`synarcx patch constitution\` — the command appends entries, deduplicates by first 60 chars, and auto-deletes the patch file on success
-       - Report the command output (e.g., "Constitution patched: +N decisions, +N exceptions. version: X → Y")
+       - Report the command output (e.g., "Constitution patched: +N decisions, +N exceptions, +N invariants, +N boundaries. version: X → Y")
 
     g. **Final confirm**:
        - "Archived <change-name> to synspec/changes/archive/YYYY-MM-DD-<name>/"
@@ -186,10 +187,16 @@ Tests:     42/42 passed  ✓
 Lint:      0 errors  ✓
 Typecheck: clean  ✓
 
-Change add-user-auth completed 7 of 7 tasks across 5 files (+124 -12). All 42 tests pass, lint is clean, type checking passes. No issues detected.
+**Summary**: Added user authentication via JWT tokens to secure the API. This was done to fulfill the requirements of the change, ensuring only authenticated users can access private endpoints.
 
-This change is clean. What would you like to do?
-[A] Archive now    [B] Add more work    [C] Start a new change
+**Impacted Files**:
+- **New**:
+  - \`src/auth.ts\`: Implements JWT signing and validation logic.
+  - \`src/middleware/auth.ts\`: Express middleware to protect routes.
+- **Modified**:
+  - \`src/index.ts\`: Registered the new auth middleware.
+- **Removed**:
+  - \`src/dummy-auth.ts\`: Removed hardcoded dummy auth.
 \`\`\`
 
 ## Output (Dirty)
@@ -200,6 +207,12 @@ Files:     5 changed (+124 -12)
 Tests:     38/42 passed  ⚠  4 failing
 Lint:      3 errors  ⚠
 Typecheck: clean  ✓
+
+**Summary**: Added user authentication via JWT tokens.
+
+**Impacted Files**:
+- **New**:
+  - \`src/auth.ts\`: Implements JWT signing and validation logic.
 
 Change add-user-auth completed 7 of 7 tasks. 4 tests failing in auth.test.ts, lint found 3 style issues. Type checking passes.
 
@@ -324,18 +337,31 @@ Review a completed change — verify implementation, run sanity checks, and deci
    Typecheck: clean  ✓
    \`\`\`
 
-   Then narrative paragraph.
+   **Then a high-level narrative summary** (context):
+   Briefly summarize WHAT changed and WHY the AI made these changes.
 
- 7. **Present the fork**
+   **Then a detailed file breakdown**:
+   List the impacted files (grouped by New, Modified, Removed), along with a short description of the changes in each file.
 
-   **If all checks pass:**
-   - Archive now → write marker, move to archive, sync specs, update marker
-   - Add more work → scope gate: read proposal capabilities + design goals/non-goals. If in scope: update artifacts, MUST run \`/syn:clarify\` then \`/syn:apply\`. If out of scope: offer to archive first (with spec sync), route to \`/syn:propose\`.
-   - Start a new change → \`/syn:propose\`
+  7. **Present the fork** (MUST use AskUserQuestion tool — never present as text)
 
-   **If issues found:**
-   - Show each finding with route: \`/syn:apply\`, \`/syn:clarify\`, \`/syn:analyze\`
-   - List all findings at once
+    **If all checks pass:**
+    Use the **AskUserQuestion tool** with these exact options:
+    > "All checks pass. What would you like to do?"
+
+    Options:
+    - "Archive this change (sync specs + patch constitution)"
+    - "Add more work to this change (scope-gated)"
+    - "Debug an issue found during review"
+
+    **If issues found:**
+    Use **AskUserQuestion tool**:
+    > "Issues found. How would you like to proceed?"
+
+    Options:
+    - "Fix implementation issues (\`/syn:apply\`)"
+    - "Debug root cause (\`/syn:debug\`)"
+    - "Refine artifacts (\`/syn:clarify\`)"
 
  8. **Archive inline** (when user picks archive)
 
@@ -344,7 +370,7 @@ Review a completed change — verify implementation, run sanity checks, and deci
     c. Move: \`mv synspec/changes/<name> synspec/changes/archive/YYYY-MM-DD-<name>\`
     d. Sync specs: \`findSpecUpdates(archivePath)\` → \`buildUpdatedSpec()\` → atomic write (\`.tmp\` + rename) → per-capability output
     e. Update marker with \`syncedAt\` timestamp
-    f. **Constitution patch**: extract \`### D<N>:\` decisions from archived \`design.md\`, scan for "Exception to INV-NNN:" patterns in design+tasks. Write \`synspec/.constitution-patch.json\` with \`{ "patches": [...] }\` format. Call \`synarcx patch constitution\` — auto-deletes the file on success. Report command output.
+    f. **Constitution patch**: extract decisions, invariants, boundaries, and exceptions from archived design.md/tasks.md. Write \`synspec/.constitution-patch.json\` with \`{ "patches": [...] }\` format. Call \`synarcx patch constitution\` — auto-deletes the file on success. Report command output.
     g. On failure: archive is already moved, marker stays \`null\`, backstop retries on next sync
 
 ---
@@ -357,6 +383,17 @@ Files:     5 changed (+124 -12)
 Tests:     42/42 passed  ✓
 Lint:      0 errors  ✓
 Typecheck: clean  ✓
+
+**Summary**: Added user authentication via JWT tokens to secure the API. This was done to fulfill the requirements of the change, ensuring only authenticated users can access private endpoints.
+
+**Impacted Files**:
+- **New**:
+  - \`src/auth.ts\`: Implements JWT signing and validation logic.
+  - \`src/middleware/auth.ts\`: Express middleware to protect routes.
+- **Modified**:
+  - \`src/index.ts\`: Registered the new auth middleware.
+- **Removed**:
+  - \`src/dummy-auth.ts\`: Removed hardcoded dummy auth.
 
 All checks pass. What would you like to do?
 [A] Archive now (with spec sync)    [B] Add more work (scope-gated)    [C] Start a new change

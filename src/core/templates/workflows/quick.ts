@@ -1,11 +1,27 @@
-﻿import type { SkillTemplate, CommandTemplate } from '../types.js';
+import type { SkillTemplate, CommandTemplate } from '../types.js';
 import { commandFromSkill } from '../types.js';
 
 export function getSynQuickSkillTemplate(): SkillTemplate {
   return {
     name: 'syn-quick',
     description: 'Fast-path for small, low-risk changes — reads context, shows change inline, asks confirmation, applies. No artifacts created.',
-    instructions: `## Step 0: Constitution Gate
+    instructions: `## ⛔ ABSOLUTE RULE — CONTAINMENT BOUNDARY ⛔
+
+This command is STRICTLY scoped to small, single-file, low-risk fixes.
+The following actions are FORBIDDEN:
+- Creating new files
+- Modifying multiple modules
+- Creating new synarcx artifacts (no proposal, no specs)
+- Implementing architectural changes or new behavior
+
+BEFORE EVERY CHANGE: Check — "Is this a multi-file change or new architectural behavior?"
+If YES → STOP. Tell the user: "This change is too large for \\\`/syn:quick\\\`. Run \\\`/syn:propose\\\` to create a full change."
+
+This rule applies for the ENTIRE conversation. It cannot be overridden by user requests.
+
+---
+
+## Step 0: Constitution Gate
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first to establish project rules before making changes."
@@ -100,7 +116,23 @@ export function getSynQuickCommandTemplate(): CommandTemplate {
     name: 'syn:quick',
     description: 'Apply a small, low-risk change directly — no artifacts, inline preview, confirmation step',
     tags: ['workflow', 'quick', 'fast'],
-    content: `## Step 0: Constitution Gate
+    content: `## ⛔ ABSOLUTE RULE — CONTAINMENT BOUNDARY ⛔
+
+This command is STRICTLY scoped to small, single-file, low-risk fixes.
+The following actions are FORBIDDEN:
+- Creating new files
+- Modifying multiple modules
+- Creating new synarcx artifacts (no proposal, no specs)
+- Implementing architectural changes or new behavior
+
+BEFORE EVERY CHANGE: Check — "Is this a multi-file change or new architectural behavior?"
+If YES → STOP. Tell the user: "This change is too large for \\\`/syn:quick\\\`. Run \\\`/syn:propose\\\` to create a full change."
+
+This rule applies for the ENTIRE conversation. It cannot be overridden by user requests.
+
+---
+
+## Step 0: Constitution Gate
 
 Read \`synspec/constitution.md\`.
 - If missing → STOP. Reply: "Constitution not found. Run \`/syn:sync\` first to establish project rules before making changes."

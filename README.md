@@ -12,9 +12,9 @@ Works with **Claude Code, Cursor, GitHub Copilot, Cline, Windsurf, Codex**, and 
 
 AI coding assistants like Claude Code and Cursor lose context fast. Requirements live in chat history. Architecture decisions vanish between sessions. Generated code drifts from design intent.
 
-Without an explicit workflow, AI-generated code gradually drifts from your architecture — each session introduces small misalignments that compound into structural debt. This is architecture drift, and it gets worse the longer the project runs.
+Without an explicit workflow, AI-generated code gradually drifts from your architecture for each session introduces small misalignments that compound into structural debt. This is architecture drift, and it gets worse the longer the project runs.
 
-SynArcX fixes this by adding a lightweight spec layer between you and your AI — so both you and the assistant agree on what to build before any code is written.
+SynArcX fixes this by adding a lightweight spec layer between you and your AI, so both you and the assistant agree on what to build before any code is written.
 
 ---
 
@@ -135,7 +135,7 @@ debug    ──┤                               ▼
 refactor ──┘        │           │                    │
                     │           │     ┌──────────────┼───────────────┐
                     │           │     ▼              ▼               ▼
-                    │        add more work       new change       archive
+                    │        add more work         debug          archive
                     │                                │               │
                     └────────────────────────────────┘               ▼
 sync ──────────────────────────────────────────────────────────► constitution
@@ -150,7 +150,7 @@ Each step suggests the next — you decide when to advance. Works in Claude Code
 - **`review`** is a three-way fork:
   - **Archive now** — auto-syncs delta specs, writes `.pending-sync.json` marker, moves to archive, patches `constitution.md` with design decisions. If spec sync fails, the change is already safely archived; retry on next sync run.
   - **Add more work** — scope gate reads proposal capabilities + design goals/non-goals. In-scope → update artifacts, `/syn:clarify` then `/syn:apply` then `/syn:review` (loop). Out-of-scope → offer archive first, then route to `/syn:propose`.
-  - **Start a new change** — routes to `/syn:propose`.
+  - **Debug an issue** — routes directly to `/syn:debug` to investigate failed checks or regressions.
 
 Run `synarcx update` in your terminal to refresh command files after installing a new version.
 
@@ -219,18 +219,18 @@ When `/syn:review` archives a completed change, it extracts engineering decision
 
 Used inside your AI coding tool (Claude Code, Cursor, Cline, etc.):
 
-| Command           | Description                                                                                                                                                                                                                          |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/syn:sync`     | 6-stage pipeline: scan project → infer invariants → interview architect → normalize → write v0.4 constitution. Processes pending spec syncs first. Checks for updates weekly (banner only, never blocks).                        |
-| `/syn:explore`  | Think through ideas, investigate problems, and clarify requirements. Gates on constitution.                                                                                                                                          |
-| `/syn:debug`    | Diagnose a known error (3-phase: root cause → pattern → hypothesis), then prompts `/syn:propose`. Gates on constitution.                                                                                                         |
-| `/syn:refactor` | Map current vs. target structure, then prompts `/syn:propose`. Gates on constitution.                                                                                                                                              |
-| `/syn:quick`    | Fast-path for small low-risk changes — inline preview, invariant check, confirm, apply. Gates on constitution.                                                                                                                      |
-| `/syn:propose`  | Create a new change with proposal, specs, design, and tasks. Reads [QR][INV][BND][WFL] to inform scope. Always follow with `/syn:clarify`. Gates on constitution.                                                                  |
-| `/syn:clarify`  | Phase 1: targeted Q&A (up to 5 questions, critical unknowns first). Phase 2: automatic consistency check (6 checks including constitution compliance). One command, runs both phases.                                                |
-| `/syn:analyze`  | Standalone cross-artifact consistency check (6 checks including constitution compliance and drift scan). Auto-run by `/syn:clarify`.                                                                                               |
-| `/syn:apply`    | Implement tasks from a change's task list. Pauses before any task that would violate an [INV] rule. Gates on constitution.                                                                                                           |
-| `/syn:review`   | Verify implementation, run sanity checks, three-way fork:**archive** (auto spec sync + constitution patch from design decisions), **add more work** (scope-gated), or **start new change**. Gates on constitution. |
+| Command           | Description                                                                                                                                                                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/syn:sync`     | 6-stage pipeline: scan project → infer invariants → interview architect → normalize → write constitution. Processes pending spec syncs first. Checks for updates weekly (banner only, never blocks).                          |
+| `/syn:explore`  | Think through ideas, investigate problems, and clarify requirements. Gates on constitution.                                                                                                                                        |
+| `/syn:debug`    | Diagnose a known error (3-phase: root cause → pattern → hypothesis), then prompts `/syn:propose`. Gates on constitution.                                                                                                       |
+| `/syn:refactor` | Map current vs. target structure, then prompts `/syn:propose`. Gates on constitution.                                                                                                                                            |
+| `/syn:quick`    | Fast-path for small low-risk changes — inline preview, invariant check, confirm, apply. Gates on constitution.                                                                                                                    |
+| `/syn:propose`  | Create a new change with proposal, specs, design, and tasks. Reads [QR][INV][BND][WFL] to inform scope. Always follow with `/syn:clarify`. Gates on constitution.                                                                |
+| `/syn:clarify`  | Phase 1: targeted Q&A (up to 5 questions, critical unknowns first). Phase 2: automatic consistency check (6 checks including constitution compliance). One command, runs both phases.                                              |
+| `/syn:analyze`  | Standalone cross-artifact consistency check (6 checks including constitution compliance and drift scan). Auto-run by `/syn:clarify`.                                                                                             |
+| `/syn:apply`    | Implement tasks from a change's task list. Pauses before any task that would violate an [INV] rule. Gates on constitution.                                                                                                         |
+| `/syn:review`   | Verify implementation, run sanity checks, three-way fork:**archive** (auto spec sync + constitution patch from design decisions), **add more work** (scope-gated), or **debug an issue**. Gates on constitution. |
 
 > These workflow commands are AI skills invoked via slash commands inside your AI coding tool — they are not terminal commands.
 
@@ -291,7 +291,7 @@ Artifacts create a traceable chain from requirements → reasoning → implement
 
 ## Supported AI Coding Tools
 
-SynArcX works with Claude Code, Cursor, GitHub Copilot, Cline, Windsurf, Codex, Gemini, OpenCode, and more. Slash commands are generated per tool on `synarcx init` — each tool gets its own command syntax automatically.
+SynArcX works with Claude Code, Cursor, GitHub Copilot, Cline, Windsurf, Codex, Gemini, OpenCode, and more. Slash commands are generated per tool on `synarcx init`, each tool gets its own command syntax automatically.
 
 ---
 
@@ -317,6 +317,7 @@ SynArcX is evolving toward an architecture-aware workflow system for long-runnin
 - **Constitution frontmatter**: `schema:` field removed — `fingerprint:` is now the identity marker. Stage 1 detects constitutions by `fingerprint:` key; old-format HTML markers trigger HARD STOP. UPDATE mode auto-strips any legacy `schema:` line.
 - **Post-sync guidance**: `/syn:sync` prints a context-aware "Where to next?" block after every run — adapts to whether there are no changes, changes in progress, or changes ready to review. Each suggestion includes the command and a one-line description.
 - **Silent sync execution**: the pipeline runs without narrating stage transitions. Only the final constitution summary and "Where to next?" block are printed.
+- **Hardened guardrails and polished UX :** Hard execution boundaries in `explore`, `propose`, `apply`, and `quick` strictly prevent premature code writing and AI deviation with upgraded to interactive "pick-and-enter" CLI menus for smoother decision-making.
 
 **v0.3.x** — `syn:review` three-way fork (archive with auto spec sync, scope-gated add-more-work, or start new change); `syn:sync` extended with pending spec sync backstop for recently archived changes; archive writes `.pending-sync.json` marker consumed by sync; atomic spec writes prevent half-written corruption.
 

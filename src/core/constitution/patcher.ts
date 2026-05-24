@@ -3,8 +3,10 @@ import { parseConstitution, getSection } from './parser.js';
 import { SECTION_HEADER_RE, ITEM_RE, nextId, computeFingerprint } from './format.js';
 
 export type PatchEntry =
-  | { type: 'decision'; decision: string; rationale: string; source: string }
-  | { type: 'exception'; ref: string; exception: string };
+  | { type: 'decision'; decision: string; rationale?: string; source?: string }
+  | { type: 'exception'; ref: string; exception: string }
+  | { type: 'invariant'; invariant: string; rationale?: string }
+  | { type: 'boundary'; boundary: string; rationale?: string };
 
 export interface ConstitutionPatch {
   patches: PatchEntry[];
@@ -14,6 +16,10 @@ export interface PatchResult {
   decisionsAdded: number;
   decisionsSkipped: number;
   exceptionsAdded: number;
+  invariantsAdded: number;
+  invariantsSkipped: number;
+  boundariesAdded: number;
+  boundariesSkipped: number;
   versionBefore: number;
   versionAfter: number;
 }
@@ -48,26 +54,28 @@ function findLastItemIdx(lines: string[], headerIdx: number, tag: string): numbe
   return lastIdx;
 }
 
-function applyDecisionEntry(
+function applySectionEntry(
   lines: string[],
-  decision: string,
+  tag: string,
+  sectionName: string,
+  content: string,
 ): [lines: string[], added: boolean] {
-  const headerIdx = findSectionHeaderIdx(lines, 'dec');
-  const existingItems = headerIdx >= 0 ? collectSectionItems(lines, headerIdx, 'dec') : [];
+  const headerIdx = findSectionHeaderIdx(lines, tag);
+  const existingItems = headerIdx >= 0 ? collectSectionItems(lines, headerIdx, tag) : [];
 
-  const prefix60 = decision.slice(0, 60);
+  const prefix60 = content.slice(0, 60);
   if (existingItems.some((item) => item.includes(prefix60))) {
     return [lines, false];
   }
 
-  const newId = nextId('dec', existingItems);
-  const newItem = `**${newId}** — ${decision}`;
+  const newId = nextId(tag, existingItems);
+  const newItem = `**${newId}** — ${content}`;
   const newLines = [...lines];
 
   if (headerIdx < 0) {
-    newLines.push('', '## [DEC] Decisions', '', newItem);
+    newLines.push('', `## [${tag.toUpperCase()}] ${sectionName}`, '', newItem);
   } else {
-    const lastItemIdx = findLastItemIdx(newLines, headerIdx, 'dec');
+    const lastItemIdx = findLastItemIdx(newLines, headerIdx, tag);
     if (lastItemIdx < 0) {
       newLines.splice(headerIdx + 1, 0, '', newItem);
     } else {
@@ -105,7 +113,17 @@ export function applyPatch(constitutionPath: string, patch: ConstitutionPatch): 
   const parsed = parseConstitution(content);
 
   if (!parsed.frontmatter) {
-    return { decisionsAdded: 0, decisionsSkipped: 0, exceptionsAdded: 0, versionBefore: 0, versionAfter: 0 };
+    return {
+      decisionsAdded: 0,
+      decisionsSkipped: 0,
+      exceptionsAdded: 0,
+      invariantsAdded: 0,
+      invariantsSkipped: 0,
+      boundariesAdded: 0,
+      boundariesSkipped: 0,
+      versionBefore: 0,
+      versionAfter: 0,
+    };
   }
 
   const versionBefore = parsed.frontmatter.version ?? 0;
@@ -113,6 +131,10 @@ export function applyPatch(constitutionPath: string, patch: ConstitutionPatch): 
     decisionsAdded: 0,
     decisionsSkipped: 0,
     exceptionsAdded: 0,
+    invariantsAdded: 0,
+    invariantsSkipped: 0,
+    boundariesAdded: 0,
+    boundariesSkipped: 0,
     versionBefore,
     versionAfter: versionBefore + 1,
   };
@@ -121,13 +143,23 @@ export function applyPatch(constitutionPath: string, patch: ConstitutionPatch): 
 
   for (const entry of patch.patches) {
     if (entry.type === 'decision') {
-      const [newLines, added] = applyDecisionEntry(lines, entry.decision);
+      const [newLines, added] = applySectionEntry(lines, 'dec', 'Decisions', entry.decision);
       lines = newLines;
       if (added) result.decisionsAdded++;
       else result.decisionsSkipped++;
     } else if (entry.type === 'exception') {
       lines = applyExceptionEntry(lines, entry.ref, entry.exception);
       result.exceptionsAdded++;
+    } else if (entry.type === 'invariant') {
+      const [newLines, added] = applySectionEntry(lines, 'inv', 'Invariants', entry.invariant);
+      lines = newLines;
+      if (added) result.invariantsAdded++;
+      else result.invariantsSkipped++;
+    } else if (entry.type === 'boundary') {
+      const [newLines, added] = applySectionEntry(lines, 'bnd', 'Boundaries', entry.boundary);
+      lines = newLines;
+      if (added) result.boundariesAdded++;
+      else result.boundariesSkipped++;
     }
   }
 
@@ -135,13 +167,41 @@ export function applyPatch(constitutionPath: string, patch: ConstitutionPatch): 
   const reparsed = parseConstitution(updatedContent);
   const invItems = getSection(reparsed, 'inv')?.items ?? [];
   const decItems = getSection(reparsed, 'dec')?.items ?? [];
-  const newFingerprint = computeFingerprint(invItems, decItems);
+  const bndItems = getSection(reparsed, 'bnd')?.items ?? [];
+  const newFingerprint = computeFingerprint(invItems, decItems, bndItems);
   const today = new Date().toISOString().split('T')[0]!;
 
-  const final = updatedContent
-    .replace(/^version:\s*\d+/m, `version: ${result.versionAfter}`)
-    .replace(/^fingerprint:\s*\S+/m, `fingerprint: ${newFingerprint}`)
-    .replace(/^last_sync:\s*\S+/m, `last_sync: ${today}`);
+  let final = updatedContent;
+  const linesOfFinal = final.split('\n');
+  if (linesOfFinal[0]?.trim() === '---') {
+    const endIdx = linesOfFinal.indexOf('---', 1);
+    if (endIdx > 0) {
+      const fmLines = linesOfFinal.slice(1, endIdx);
+
+      const updateField = (key: string, value: string | number) => {
+        const idx = fmLines.findIndex((line) => line.trim().startsWith(`${key}:`));
+        if (idx >= 0) {
+          fmLines[idx] = `${key}: ${value}`;
+        } else {
+          fmLines.push(`${key}: ${value}`);
+        }
+      };
+
+      updateField('version', result.versionAfter);
+      updateField('fingerprint', newFingerprint);
+      updateField('last_sync', today);
+
+      final = [
+        '---',
+        ...fmLines,
+        ...linesOfFinal.slice(endIdx),
+      ].join('\n');
+    } else {
+      throw new Error('Malformed frontmatter: closing --- not found.');
+    }
+  } else {
+    throw new Error('Malformed constitution: frontmatter block --- not found at top.');
+  }
 
   const tmpPath = `${constitutionPath}.tmp`;
   writeFileSync(tmpPath, final, 'utf-8');
