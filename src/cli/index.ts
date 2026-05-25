@@ -14,7 +14,7 @@ import { ShowCommand } from '../commands/show.js';
 import { CompletionCommand } from '../commands/completion.js';
 import { FeedbackCommand } from '../commands/feedback.js';
 import { registerConfigCommand } from '../commands/config.js';
-import { registerSchemaCommand } from '../commands/schema.js';
+import { registerSchemaCommand } from '../commands/schema/index.js';
 import { registerWorkspaceCommand } from '../commands/workspace.js';
 import {
   statusCommand,

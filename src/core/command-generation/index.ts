@@ -29,5 +29,4 @@ export { CommandAdapterRegistry } from './registry.js';
 // Generator functions
 export { generateCommand, generateCommands } from './generator.js';
 
-// Adapters (for direct access if needed)
-export { claudeAdapter, cursorAdapter, windsurfAdapter } from './adapters/index.js';
+

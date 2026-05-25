@@ -127,6 +127,20 @@ export interface LegacyDetectionResult {
 export async function detectLegacyArtifacts(
   projectPath: string
 ): Promise<LegacyDetectionResult> {
+  if (process.env.SYNARCX_SKIP_LEGACY_CLEANUP === '1') {
+    return {
+      configFiles: [],
+      configFilesToUpdate: [],
+      slashCommandDirs: [],
+      slashCommandFiles: [],
+      oppSkillDirs: [],
+      hasOpenspecAgents: false,
+      hasProjectMd: false,
+      hasRootAgentsWithMarkers: false,
+      hasLegacyArtifacts: false,
+    };
+  }
+
   const result: LegacyDetectionResult = {
     configFiles: [],
     configFilesToUpdate: [],

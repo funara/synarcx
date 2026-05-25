@@ -1,6 +1,6 @@
 {
   "name": "synarcx",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Structured engineering workflows for AI coding assistants — persistent project memory, spec-driven development, and architecture drift prevention across every session.",
   "keywords": [
     "ai-workflow",

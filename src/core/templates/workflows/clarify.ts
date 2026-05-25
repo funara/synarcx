@@ -50,17 +50,11 @@ Question categories:
 
 Do NOT ask about anything already established in the [INV] section of \`synspec/constitution.md\`.
 
+For each generated question, produce 2–4 concrete answer options alongside the question text (not after).
+
 ### Step 1.4: Ask questions interactively (pick-and-enter UX)
 
-For EACH question, use the **AskUserQuestion tool** with pre-generated answer options.
-
-Rules for question format:
-- **Preference/choice questions** (e.g., "Should this be sync or async?"): provide 2-4 specific options. A write-in option is automatically available.
-- **Scope questions** (e.g., "Should this include admin users?"): provide Yes/No/Partial options with context.
-- **Prioritization** (e.g., "Which edge case matters most?"): list the specific edge cases as options.
-- **Truly open-ended questions** (e.g., "Describe the expected user journey"): use open-ended format ONLY when no reasonable options can be pre-generated.
-
-Goal: The user should be able to answer most questions with a single click/selection, not by typing paragraphs.
+Use the **AskUserQuestion tool** (single-select) to present each question with its generated options — no free-text question blocks. The "Other" fallback from AskUserQuestion covers edge cases.
 
 Present questions one at a time. Wait for each answer before moving to the next.
 Default maximum: 5 questions. If critical unknowns remain after 5, ask user to confirm before continuing.
@@ -154,8 +148,12 @@ Do NOT ask about anything already established in [INV].
 
 "Critical" = a hole that would produce broken or incorrect code if left unaddressed.
 
+For each generated question, produce 2–4 concrete answer options alongside the question text (not after).
+
 ### Step 1.4: Ask questions interactively (pick-and-enter UX)
-Use the **AskUserQuestion tool** with pre-generated answer options (e.g., preference choices, scope options, yes/no with context). Present one at a time. Wait for each answer. Max 5 questions. Ask about additional critical unknowns only with user confirmation. Goal: single-click responses instead of typing.
+Use the **AskUserQuestion tool** (single-select) to present each question with its generated options — no free-text question blocks. The "Other" fallback from AskUserQuestion covers edge cases.
+
+Present one at a time. Wait for each answer. Max 5 questions. Ask about additional critical unknowns only with user confirmation.
 
 ### Step 1.5: Encode answers back into artifacts
 Edit proposal.md, design.md, or specs in place. Do NOT create new files. Show what changed and why.

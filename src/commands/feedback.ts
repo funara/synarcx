@@ -185,8 +185,20 @@ function handleFallback(title: string, body: string, reason: 'missing' | 'unauth
  * Feedback command implementation
  */
 export class FeedbackCommand {
-  async execute(_message: string, _options?: { body?: string }): Promise<void> {
-    console.log('Feedback is not configured for this installation.');
-    console.log('No public repository is set up yet.');
+  async execute(message: string, options?: { body?: string }): Promise<void> {
+    const title = formatTitle(message);
+    const body = formatBody(options?.body);
+
+    if (!isGhInstalled()) {
+      handleFallback(title, body, 'missing');
+      return;
+    }
+
+    if (!isGhAuthenticated()) {
+      handleFallback(title, body, 'unauthenticated');
+      return;
+    }
+
+    submitViaGhCli(title, body);
   }
 }
